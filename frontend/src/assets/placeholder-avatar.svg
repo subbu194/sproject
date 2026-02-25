@@ -1,0 +1,22 @@
+<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="28" x2="196" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F6F8"/>
+      <stop offset="1" stop-color="#3A6EA5"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(70 55) rotate(45) scale(140 120)">
+      <stop stop-color="white" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="10" y="10" width="200" height="200" rx="44" fill="url(#bg)"/>
+  <rect x="10" y="10" width="200" height="200" rx="44" fill="url(#shine)"/>
+
+  <circle cx="110" cy="92" r="34" fill="rgba(0,0,0,0.14)"/>
+  <path d="M57 172c10-30 34-48 53-48s43 18 53 48" fill="rgba(0,0,0,0.14)"/>
+
+  <text x="110" y="198" text-anchor="middle" fill="rgba(0,0,0,0.45)" font-family="Inter, ui-sans-serif, system-ui" font-size="12" font-weight="600">
+    Your Photo Here
+  </text>
+</svg>
