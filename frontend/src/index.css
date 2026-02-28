@@ -1,17 +1,43 @@
 @import "tailwindcss";
 
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap");
-
 @layer base {
   :root {
     --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
       Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     --font-serif: "Instrument Serif", ui-serif, Georgia, Cambria, "Times New Roman",
       Times, serif;
+
+    /* Palette (matches hero) */
+    --color-primary: #1f2a44;
+    --color-accent: #3a6ea5;
+    --color-bg: #f4f6f8;
+    --color-highlight: #a7b0b9;
+    --color-secondary: #5e5e5e;
+    --color-cta: #2563eb;
+
+    /* Derived surfaces (so sections stay consistent) */
+    --bg-80: color-mix(in srgb, var(--color-bg) 80%, transparent);
+    --bg-90: color-mix(in srgb, var(--color-bg) 90%, transparent);
+    --surface-70: color-mix(in srgb, white 70%, transparent);
+    --surface-60: color-mix(in srgb, white 60%, transparent);
+    --surface-80: color-mix(in srgb, white 80%, transparent);
+
+    --border-35: color-mix(in srgb, var(--color-highlight) 35%, transparent);
+    --border-45: color-mix(in srgb, var(--color-highlight) 45%, transparent);
+    --border-55: color-mix(in srgb, var(--color-highlight) 55%, transparent);
+    --border-25: color-mix(in srgb, var(--color-highlight) 25%, transparent);
+
+    --accent-25: color-mix(in srgb, var(--color-accent) 25%, transparent);
+    --primary-18: color-mix(in srgb, var(--color-primary) 18%, transparent);
   }
 
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-primary);
   }
 }
