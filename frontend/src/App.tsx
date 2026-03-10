@@ -1,24 +1,287 @@
 import heroPhoto from './assets/hero.png';
-import { useEffect } from 'react';
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+
+const API = 'http://localhost:5000';
+
+function AdminLogin() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem('admin_token', data.token);
+        navigate('/admin/dashboard');
+      } else {
+        setError(data.error || 'Invalid credentials');
+      }
+    } catch {
+      setError('Could not reach server. Make sure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] px-6">
+      <div className="w-full max-w-sm">
+        <NavLink
+          to="/"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition-colors"
+        >
+          ← Back to site
+        </NavLink>
+
+        <div className="rounded-[28px] border border-[var(--border-45)] bg-[var(--surface-70)] p-8 shadow-sm backdrop-blur">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-secondary)]">
+            Admin
+          </div>
+          <h1 className="mt-3 font-[var(--font-serif)] text-3xl tracking-tight text-[var(--color-primary)]">
+            Sign in
+          </h1>
+
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
+                Email
+              </span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-accent)]"
+                placeholder="admin@example.com"
+              />
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
+                Password
+              </span>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-accent)]"
+                placeholder="••••••••"
+              />
+            </label>
+
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded-xl bg-[var(--color-cta)] py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ContactEntry {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  submittedAt: string;
+}
+
+function AdminDashboard() {
+  const navigate = useNavigate();
+  const [contacts, setContacts] = useState<ContactEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      navigate('/admin/login');
+      return;
+    }
+    fetch(`${API}/api/admin/contacts`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('admin_token');
+          navigate('/admin/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setContacts(data);
+      })
+      .catch(() => setError('Could not load submissions. Make sure the backend is running.'))
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    navigate('/admin/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)] px-6 py-12">
+      <div className="mx-auto max-w-4xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-secondary)]">
+              Admin
+            </div>
+            <h1 className="mt-2 font-[var(--font-serif)] text-4xl tracking-tight text-[var(--color-primary)]">
+              Contact Submissions
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <NavLink
+              to="/"
+              className="text-sm text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition-colors"
+            >
+              ← Site
+            </NavLink>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-xl border border-[var(--border-55)] bg-[var(--surface-70)] px-4 py-2 text-sm font-semibold text-[var(--color-primary)] shadow-sm transition hover:bg-[var(--surface-80)]"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-10">
+          {loading && (
+            <div className="text-sm text-[var(--color-secondary)]">Loading submissions…</div>
+          )}
+
+          {error && (
+            <div className="rounded-[22px] border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && contacts.length === 0 && (
+            <div className="rounded-[22px] border border-[var(--border-45)] bg-[var(--surface-70)] p-8 text-center text-sm text-[var(--color-secondary)]">
+              No submissions yet.
+            </div>
+          )}
+
+          {!loading && contacts.length > 0 && (
+            <div className="space-y-4">
+              <div className="text-sm text-[var(--color-secondary)]">
+                {contacts.length} submission{contacts.length !== 1 ? 's' : ''}
+              </div>
+              {contacts.map((c) => (
+                <div
+                  key={c._id}
+                  className="rounded-[22px] border border-[var(--border-45)] bg-[var(--surface-70)] p-6 shadow-sm backdrop-blur"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-[var(--color-primary)]">{c.name}</div>
+                      <div className="mt-0.5 text-sm text-[var(--color-accent)]">{c.email}</div>
+                    </div>
+                    <div className="text-xs text-[var(--color-secondary)]">
+                      {new Date(c.submittedAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-secondary)]">
+                    {c.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState('');
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactError('');
+    setContactSubmitting(true);
+    try {
+      const res = await fetch(`${API}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: contactName, email: contactEmail, message: contactMessage }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setContactSuccess(true);
+        setContactName('');
+        setContactEmail('');
+        setContactMessage('');
+      } else {
+        setContactError(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      setContactError('Could not reach server. Please try again later.');
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
+
   const navItems = [
-    { label: 'Story', to: '/story', sectionId: 'story' },
-    { label: 'Ventures', to: '/ventures', sectionId: 'ventures' },
-    { label: 'Daily Log', to: '/daily-log', sectionId: 'daily-log' },
-    { label: 'Thoughts', to: '/thoughts', sectionId: 'thoughts' },
-    { label: 'Press', to: '/press', sectionId: 'press' },
-    { label: 'Achievements', to: '/achievements', sectionId: 'achievements' },
-    { label: 'Connect', to: '/page/connect', sectionId: 'connect' },
+    { label: 'Story', sectionId: 'story' },
+    { label: 'Ventures', sectionId: 'ventures' },
+    { label: 'Daily Log', sectionId: 'daily-log' },
+    { label: 'Thoughts', sectionId: 'thoughts' },
+    { label: 'Press', sectionId: 'press' },
+    { label: 'Achievements', sectionId: 'achievements' },
+    { label: 'Connect', sectionId: 'connect' },
   ] as const;
 
   const location = useLocation();
+  const navigate = useNavigate();
+  const pendingScrollRef = useRef<string | null>(null);
 
   useEffect(() => {
     const pathname = location.pathname || '/';
+
     if (pathname === '/') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      if (pendingScrollRef.current) {
+        const el = document.getElementById(pendingScrollRef.current);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        pendingScrollRef.current = null;
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
       return;
     }
 
@@ -26,13 +289,17 @@ export default function App() {
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       return;
     }
-
-    const match = navItems.find((i) => i.to === pathname);
-    if (!match) return;
-
-    const el = document.getElementById(match.sectionId);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [location.pathname]);
+
+  const handleNavScroll = (sectionId: string) => {
+    if (location.pathname === '/') {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      pendingScrollRef.current = sectionId;
+      navigate('/');
+    }
+  };
 
   const SectionPageShell = ({
     kicker,
@@ -982,58 +1249,83 @@ export default function App() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <form
           className="rounded-[22px] border border-[var(--border-45)] bg-[var(--surface-70)] p-6 shadow-sm backdrop-blur"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleContactSubmit}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
-                Name
-              </span>
-              <input
-                className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none ring-0 placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
-                placeholder="Your name"
-              />
-            </label>
+          {contactSuccess ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="text-2xl font-semibold text-[var(--color-accent)]">Message sent!</div>
+              <p className="mt-3 text-sm text-[var(--color-secondary)]">
+                Thanks for reaching out. I'll get back to you soon.
+              </p>
+              <button
+                type="button"
+                onClick={() => setContactSuccess(false)}
+                className="mt-6 text-sm font-semibold text-[var(--color-cta)] hover:opacity-80 transition-opacity"
+              >
+                Send another message
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
+                    Name
+                  </span>
+                  <input
+                    required
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none ring-0 placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
+                    placeholder="Your name"
+                  />
+                </label>
 
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
-                Email
-              </span>
-              <input
-                type="email"
-                className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none ring-0 placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
-                placeholder="you@email.com"
-              />
-            </label>
-          </div>
+                <label className="grid gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
+                    Email
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    className="h-11 rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 text-sm text-[var(--color-primary)] outline-none ring-0 placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
+                    placeholder="you@email.com"
+                  />
+                </label>
+              </div>
 
-          <label className="mt-4 grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
-              Message
-            </span>
-            <textarea
-              className="min-h-[120px] resize-none rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 py-3 text-sm text-[var(--color-primary)] outline-none placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
-              placeholder="Tell me about your project..."
-            />
-          </label>
+              <label className="mt-4 grid gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-secondary)]">
+                  Message
+                </span>
+                <textarea
+                  required
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  className="min-h-[120px] resize-none rounded-xl border border-[var(--border-55)] bg-[var(--surface-80)] px-4 py-3 text-sm text-[var(--color-primary)] outline-none placeholder:text-[var(--color-highlight)] focus:border-[var(--color-accent)]"
+                  placeholder="Tell me about your project..."
+                />
+              </label>
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              className="rounded-xl bg-[var(--color-cta)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-            >
-              Send message
-            </button>
-            <a
-              href="mailto:hello@example.com"
-              className="rounded-xl border border-[var(--border-55)] bg-[var(--surface-70)] px-6 py-3 text-sm font-semibold text-[var(--color-primary)] shadow-sm transition hover:bg-[var(--surface-80)]"
-            >
-              Email directly
-            </a>
-          </div>
-          <div className="mt-3 text-xs text-[var(--color-secondary)]">
-            Replace <span className="font-semibold">hello@example.com</span> with your real email.
-          </div>
+              {contactError && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {contactError}
+                </div>
+              )}
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={contactSubmitting}
+                  className="rounded-xl bg-[var(--color-cta)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-60"
+                >
+                  {contactSubmitting ? 'Sending…' : 'Send message'}
+                </button>
+              </div>
+            </>
+          )}
         </form>
 
         <div className="space-y-4">
@@ -1070,7 +1362,7 @@ export default function App() {
   );
 
   const homeConnectCta = (
-    <footer className="rounded-[28px] border border-[var(--border-45)] bg-[var(--surface-70)] p-8 shadow-sm backdrop-blur">
+    <footer id="connect" className="scroll-mt-24 rounded-[28px] border border-[var(--border-45)] bg-[var(--surface-70)] p-8 shadow-sm backdrop-blur">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-secondary)]">
@@ -1101,76 +1393,85 @@ export default function App() {
         </div>
       </div>
       <div className="mt-8 h-px w-full bg-[var(--border-35)]" />
-      <div className="mt-4 text-xs text-[var(--color-secondary)]">
-        © {new Date().getFullYear()} Salman Shariff. All rights reserved.
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-xs text-[var(--color-secondary)]">
+          © {new Date().getFullYear()} Salman Shariff. All rights reserved.
+        </div>
+        <NavLink
+          to="/admin/login"
+          className="text-[10px] text-[var(--color-secondary)] opacity-25 transition-opacity hover:opacity-50"
+        >
+          admin
+        </NavLink>
       </div>
     </footer>
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-primary)]">
-      <header className="sticky top-0 z-20 border-b border-[var(--border-45)] bg-[var(--bg-80)] backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <NavLink
-            className="text-lg font-bold tracking-tight text-[var(--color-accent)] transition-colors hover:text-[var(--color-primary)] sm:text-xl"
-            to="/"
-            aria-label="Salman Shariff home"
-          >
-            Salman Shariff
-          </NavLink>
-
-          <nav className="hidden items-center gap-10 text-base font-semibold md:flex">
-            {navItems.map((item) => (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route
+        path="*"
+        element={
+          <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-primary)]">
+            <header className="sticky top-0 z-20 border-b border-[var(--border-45)] bg-[var(--bg-80)] backdrop-blur">
+              <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
               <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  [
-                    'font-semibold transition-colors',
-                    isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-primary)]',
-                    'hover:text-[var(--color-accent)]',
-                  ].join(' ')
-                }
-                aria-label={item.label}
+                className="text-lg font-bold tracking-tight text-[var(--color-accent)] transition-colors hover:text-[var(--color-primary)] sm:text-xl"
+                to="/"
+                aria-label="Salman Shariff home"
               >
-                {item.label}
+                Salman Shariff
               </NavLink>
-            ))}
-          </nav>
 
-          <button
-            type="button"
-            className="inline-flex items-center rounded-full border border-[var(--border-55)] bg-[var(--color-bg)] px-4 py-2 text-sm text-[var(--color-secondary)] shadow-sm transition hover:bg-[var(--surface-70)] md:hidden"
-            aria-label="Open menu"
-            onClick={() => {
-              // Placeholder for future mobile menu
-            }}
-          >
-            Menu
-          </button>
-        </div>
-      </header>
+              <nav className="hidden items-center gap-10 text-base font-semibold md:flex">
+                {navItems.map((item) => (
+                  <button
+                    key={item.sectionId}
+                    type="button"
+                    onClick={() => handleNavScroll(item.sectionId)}
+                    className="font-semibold transition-colors text-[var(--color-primary)] hover:text-[var(--color-accent)]"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
 
-      <main className="mx-auto max-w-6xl px-6 pb-16 pt-14">
-        <Routes>
-          {/* Home (single-page site) */}
-          <Route
-            path="/"
-            element={
-              <>
-                {heroSection}
-                <div className="mt-16 space-y-16">
-                  {storySection}
-                  {venturesSection}
-                  {dailyLogSection}
-                  {thoughtsSection}
-                  {pressSection}
-                  {achievementsSection}
-                  {homeConnectCta}
-                </div>
-              </>
-            }
-          />
+              <button
+                type="button"
+                className="inline-flex items-center rounded-full border border-[var(--border-55)] bg-[var(--color-bg)] px-4 py-2 text-sm text-[var(--color-secondary)] shadow-sm transition hover:bg-[var(--surface-70)] md:hidden"
+                aria-label="Open menu"
+                onClick={() => {
+                  // Placeholder for future mobile menu
+                }}
+              >
+                Menu
+              </button>
+            </div>
+          </header>
+
+          <main className="mx-auto max-w-6xl px-6 pb-16 pt-14">
+            <Routes>
+              {/* Home (single-page site) */}
+              <Route
+                path="/"
+                element={
+                  <>
+                    {heroSection}
+                    <div className="mt-16 space-y-16">
+                      {storySection}
+                      {venturesSection}
+                      {dailyLogSection}
+                      {thoughtsSection}
+                      {pressSection}
+                      {achievementsSection}
+                      {connectSection}
+                    </div>
+                    {homeConnectCta}
+                  </>
+                }
+              />
 
           {/* Separate professional pages */}
           <Route
@@ -1270,8 +1571,11 @@ export default function App() {
               </SectionPageShell>
             }
           />
-        </Routes>
-      </main>
-    </div>
+            </Routes>
+          </main>
+        </div>
+        }
+      />
+    </Routes>
   );
 }
