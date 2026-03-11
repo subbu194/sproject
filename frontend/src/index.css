@@ -1,43 +1,101 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-      Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    --font-serif: "Instrument Serif", ui-serif, Georgia, Cambria, "Times New Roman",
-      Times, serif;
+@theme {
+  --color-cream: #F5F0E8;
+  --color-warm-white: #FDFAF5;
+  --color-brown: #2C1A0E;
+  --color-brown-light: #5C3D2E;
+  --color-gold: #C8962A;
+  --color-gold-light: #E8B84B;
+  --color-muted: #8C7B6E;
+  --color-card-bg: #FDF6EC;
+}
 
-    /* Palette (matches hero) */
-    --color-primary: #1f2a44;
-    --color-accent: #3a6ea5;
-    --color-bg: #f4f6f8;
-    --color-highlight: #a7b0b9;
-    --color-secondary: #5e5e5e;
-    --color-cta: #2563eb;
+:root {
+  --cream: #F5F0E8;
+  --warm-white: #FDFAF5;
+  --brown: #2C1A0E;
+  --brown-light: #5C3D2E;
+  --gold: #C8962A;
+  --gold-light: #E8B84B;
+  --muted: #8C7B6E;
+  --card-bg: #FDF6EC;
+}
 
-    /* Derived surfaces (so sections stay consistent) */
-    --bg-80: color-mix(in srgb, var(--color-bg) 80%, transparent);
-    --bg-90: color-mix(in srgb, var(--color-bg) 90%, transparent);
-    --surface-70: color-mix(in srgb, white 70%, transparent);
-    --surface-60: color-mix(in srgb, white 60%, transparent);
-    --surface-80: color-mix(in srgb, white 80%, transparent);
+html {
+  font-family: 'DM Sans', sans-serif;
+  scroll-behavior: smooth;
+}
 
-    --border-35: color-mix(in srgb, var(--color-highlight) 35%, transparent);
-    --border-45: color-mix(in srgb, var(--color-highlight) 45%, transparent);
-    --border-55: color-mix(in srgb, var(--color-highlight) 55%, transparent);
-    --border-25: color-mix(in srgb, var(--color-highlight) 25%, transparent);
+body {
+  background: var(--warm-white);
+  color: var(--brown);
+  margin: 0;
+  padding: 0;
+}
 
-    --accent-25: color-mix(in srgb, var(--color-accent) 25%, transparent);
-    --primary-18: color-mix(in srgb, var(--color-primary) 18%, transparent);
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
   }
-
-  html {
-    font-family: var(--font-sans);
-    scroll-behavior: smooth;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  body {
-    background: var(--color-bg);
-    color: var(--color-primary);
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
   }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out both;
+}
+
+.animate-fade-up-1 { animation-delay: 0.1s; }
+.animate-fade-up-2 { animation-delay: 0.2s; }
+.animate-fade-up-3 { animation-delay: 0.3s; }
+.animate-fade-up-4 { animation-delay: 0.4s; }
+
+.animate-pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--cream) 25%, var(--warm-white) 50%, var(--cream) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brown-light);
 }

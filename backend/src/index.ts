@@ -1,73 +1,66 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import mongoose from "mongoose";
-import { ContactForm } from "./models/ContactForm.js";
+import 'dotenv/config';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import { connectDatabase } from './config/db';
+import { initializeR2 } from './config/r2';
 
-dotenv.config();
+// Route imports
+import authRoutes from './routes/auth.routes';
+import storyRoutes from './routes/story.routes';
+import dailyLogRoutes from './routes/dailyLog.routes';
+import thoughtsRoutes from './routes/thoughts.routes';
+import pressRoutes from './routes/press.routes';
+import achievementsRoutes from './routes/achievements.routes';
+import connectRoutes from './routes/connect.routes';
+import contactRoutes from './routes/contact.routes';
 
 const app = express();
 
-app.use(cors());
+// CORS
+app.use(
+  cors({
+    origin: [process.env.FRONTEND_URL || '', 'http://localhost:5173'],
+    credentials: true,
+  })
+);
+
+// Body parsing
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const MONGO_URI = process.env.MONGO_URI || "";
+// Health check
+app.get('/', (_req: Request, res: Response) => {
+  res.json({ message: 'API running 🚀' });
+});
 
-if (MONGO_URI) {
-  mongoose
-    .connect(MONGO_URI)
-    .then(() => console.log("MongoDB connected ✅"))
-    .catch((err) => console.error("MongoDB connection error:", err));
-} else {
-  console.warn("MONGO_URI not set. Add it to .env to enable database features.");
+// Mount all routes under /api/v1
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/story', storyRoutes);
+app.use('/api/v1/log', dailyLogRoutes);
+app.use('/api/v1/thoughts', thoughtsRoutes);
+app.use('/api/v1/press', pressRoutes);
+app.use('/api/v1/achievements', achievementsRoutes);
+app.use('/api/v1/connect', connectRoutes);
+app.use('/api/v1/contact', contactRoutes);
+
+// Global error handler
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(err.stack || err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal server error',
+  });
+});
+
+// Bootstrap
+async function bootstrap() {
+  await connectDatabase();
+  await initializeR2();
+
+  const PORT = process.env.PORT || 80;
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
 }
 
-app.get("/", (_req, res) => {
-  res.json({ message: "API running 🚀" });
-});
-
-app.post("/api/contact", async (req, res) => {
-  try {
-    const { name, email, message } = req.body as { name: string; email: string; message: string };
-    if (!name || !email || !message) {
-      res.status(400).json({ error: "All fields are required" });
-      return;
-    }
-    const form = new ContactForm({ name, email, message });
-    await form.save();
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to save form" });
-  }
-});
-
-app.post("/api/admin/login", (req, res) => {
-  const { email, password } = req.body as { email: string; password: string };
-  if (email === "salman@gmail.com" && password === "salman@123") {
-    res.json({ success: true, token: "admin-authenticated" });
-  } else {
-    res.status(401).json({ error: "Invalid credentials" });
-  }
-});
-
-app.get("/api/admin/contacts", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader !== "Bearer admin-authenticated") {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  try {
-    const forms = await ContactForm.find().sort({ submittedAt: -1 });
-    res.json(forms);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch contacts" });
-  }
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+bootstrap();
