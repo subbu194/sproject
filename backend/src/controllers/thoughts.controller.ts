@@ -12,7 +12,12 @@ function generateSlug(title: string): string {
 
 export async function getPublishedThoughts(req: Request, res: Response, next: NextFunction) {
   try {
-    const thoughts = await Thought.find({ published: true }).sort({ order: 1, createdAt: -1 });
+    const limit = parseInt(req.query.limit as string) || 100;
+    const skip = parseInt(req.query.skip as string) || 0;
+    const thoughts = await Thought.find({ published: true })
+      .sort({ order: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
     res.json({ success: true, data: thoughts, count: thoughts.length });
   } catch (err) {
     next(err);
@@ -21,7 +26,12 @@ export async function getPublishedThoughts(req: Request, res: Response, next: Ne
 
 export async function getAllThoughts(req: Request, res: Response, next: NextFunction) {
   try {
-    const thoughts = await Thought.find().sort({ order: 1, createdAt: -1 });
+    const limit = parseInt(req.query.limit as string) || 500;
+    const skip = parseInt(req.query.skip as string) || 0;
+    const thoughts = await Thought.find()
+      .sort({ order: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
     res.json({ success: true, data: thoughts, count: thoughts.length });
   } catch (err) {
     next(err);
@@ -30,13 +40,13 @@ export async function getAllThoughts(req: Request, res: Response, next: NextFunc
 
 export async function createThought(req: Request, res: Response, next: NextFunction) {
   try {
-    const { topic, title, summary, published, order } = req.body;
+    const { topic, title, summary, published, order, images } = req.body;
     if (!topic || !title || !summary) {
       res.status(400).json({ success: false, error: 'Topic, title, and summary are required' });
       return;
     }
     const slug = generateSlug(title);
-    const thought = await Thought.create({ topic, title, summary, slug, published, order });
+    const thought = await Thought.create({ topic, title, summary, slug, published, order, images });
     res.status(201).json({ success: true, data: thought });
   } catch (err) {
     next(err);

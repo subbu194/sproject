@@ -7,7 +7,12 @@ export async function getPublishedLogs(req: Request, res: Response, next: NextFu
     if (req.query.tag) {
       query.tags = req.query.tag as string;
     }
-    const entries = await LogEntry.find(query).sort({ date: -1 });
+    const limit = parseInt(req.query.limit as string) || 100;
+    const skip = parseInt(req.query.skip as string) || 0;
+    const entries = await LogEntry.find(query)
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
     res.json({ success: true, data: entries, count: entries.length });
   } catch (err) {
     next(err);
@@ -25,7 +30,12 @@ export async function getTags(req: Request, res: Response, next: NextFunction) {
 
 export async function getAllLogs(req: Request, res: Response, next: NextFunction) {
   try {
-    const entries = await LogEntry.find().sort({ date: -1 });
+    const limit = parseInt(req.query.limit as string) || 500;
+    const skip = parseInt(req.query.skip as string) || 0;
+    const entries = await LogEntry.find()
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
     res.json({ success: true, data: entries, count: entries.length });
   } catch (err) {
     next(err);
@@ -34,12 +44,12 @@ export async function getAllLogs(req: Request, res: Response, next: NextFunction
 
 export async function createLog(req: Request, res: Response, next: NextFunction) {
   try {
-    const { date, title, body, tags, published } = req.body;
+    const { date, title, body, tags, published, images } = req.body;
     if (!title || !body) {
       res.status(400).json({ success: false, error: 'Title and body are required' });
       return;
     }
-    const entry = await LogEntry.create({ date, title, body, tags, published });
+    const entry = await LogEntry.create({ date, title, body, tags, published, images });
     res.status(201).json({ success: true, data: entry });
   } catch (err) {
     next(err);

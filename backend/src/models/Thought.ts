@@ -7,6 +7,7 @@ export interface IThought extends Document {
   slug: string;
   published: boolean;
   order: number;
+  images: string[];
 }
 
 const ThoughtSchema = new Schema<IThought>(
@@ -17,19 +18,22 @@ const ThoughtSchema = new Schema<IThought>(
     slug: { type: String, unique: true },
     published: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
+    images: [{ type: String }],
   },
   { timestamps: true }
 );
 
 // Auto-generate slug from title before validate
-ThoughtSchema.pre('validate', function () {
+ThoughtSchema.pre('validate', async function () {
   if (this.isModified('title') || !this.slug) {
-    this.slug = this.title
+    const { nanoid } = await import('nanoid');
+    const baseSlug = this.title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+    this.slug = `${baseSlug}-${nanoid(6)}`;
   }
 });
 

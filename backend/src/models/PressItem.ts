@@ -6,6 +6,7 @@ export interface IPressItem extends Document {
   year: string;
   url: string;
   order: number;
+  images: string[];
 }
 
 const PressItemSchema = new Schema<IPressItem>(
@@ -15,6 +16,7 @@ const PressItemSchema = new Schema<IPressItem>(
     year: { type: String, required: true },
     url: { type: String, default: '' },
     order: { type: Number, default: 0 },
+    images: [{ type: String }],
   },
   { timestamps: true }
 );

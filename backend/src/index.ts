@@ -13,6 +13,7 @@ import pressRoutes from './routes/press.routes';
 import achievementsRoutes from './routes/achievements.routes';
 import connectRoutes from './routes/connect.routes';
 import contactRoutes from './routes/contact.routes';
+import uploadRoutes from './routes/upload.routes';
 
 const app = express();
 
@@ -42,13 +43,17 @@ app.use('/api/v1/press', pressRoutes);
 app.use('/api/v1/achievements', achievementsRoutes);
 app.use('/api/v1/connect', connectRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 // Global error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack || err);
-  res.status(err.status || 500).json({
+  const status = err.status || 500;
+  // Prevent leaking internal error details on 500s
+  const message = status === 500 ? 'Internal server error' : (err.message || 'Internal server error');
+  res.status(status).json({
     success: false,
-    error: err.message || 'Internal server error',
+    error: message,
   });
 });
 

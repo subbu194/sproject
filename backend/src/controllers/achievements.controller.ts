@@ -19,12 +19,12 @@ export async function getAchievements(req: Request, res: Response, next: NextFun
 
 export async function createAchievement(req: Request, res: Response, next: NextFunction) {
   try {
-    const { icon, title, description, year, order } = req.body;
+    const { icon, title, description, year, order, images } = req.body;
     if (!title || !description || !year) {
       res.status(400).json({ success: false, error: 'Title, description, and year are required' });
       return;
     }
-    const item = await Achievement.create({ icon, title, description, year, order });
+    const item = await Achievement.create({ icon, title, description, year, order, images });
     res.status(201).json({ success: true, data: item });
   } catch (err) {
     next(err);

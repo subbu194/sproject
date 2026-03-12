@@ -6,6 +6,7 @@ export interface IAchievement extends Document {
   description: string;
   year: string;
   order: number;
+  images: string[];
 }
 
 const AchievementSchema = new Schema<IAchievement>(
@@ -15,6 +16,7 @@ const AchievementSchema = new Schema<IAchievement>(
     description: { type: String, required: true },
     year: { type: String, required: true },
     order: { type: Number, default: 0 },
+    images: [{ type: String }],
   },
   { timestamps: true }
 );
