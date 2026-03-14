@@ -23,12 +23,12 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
+      <div >
         <HeroSection />
       </div>
 
       {/* Sections */}
-      <div className="space-y-0">
+      <div >
         <StoryPreview />
         <DailyLogPreview />
         <ThoughtsPreview />

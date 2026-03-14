@@ -11,6 +11,7 @@ interface LogItem {
   title: string;
   body: string;
   tags?: string[];
+  images?: string[];
 }
 
 export default function DailyLog() {
@@ -93,6 +94,7 @@ export default function DailyLog() {
                   title={log.title}
                   body={log.body}
                   tags={log.tags}
+                  images={log.images}
                 />
               ))
             ) : (

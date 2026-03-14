@@ -19,10 +19,16 @@ export default function ConnectPreview() {
       .catch(() => setSocial({}));
   }, []);
 
+  const formatUrl = (url?: string) => {
+    if (!url) return undefined;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) return url;
+    return `https://${url}`;
+  };
+
   const socialButtons = [
-    { key: 'whatsapp', label: 'WhatsApp', icon: '💬', url: social.whatsapp },
-    { key: 'instagram', label: 'Instagram', icon: '📷', url: social.instagram },
-    { key: 'linkedin', label: 'LinkedIn', icon: '💼', url: social.linkedin },
+    { key: 'whatsapp', label: 'WhatsApp', icon: '💬', url: formatUrl(social.whatsapp) },
+    { key: 'instagram', label: 'Instagram', icon: '📷', url: formatUrl(social.instagram) },
+    { key: 'linkedin', label: 'LinkedIn', icon: '💼', url: formatUrl(social.linkedin) },
     { key: 'email', label: 'Email', icon: '✉️', url: social.email ? `mailto:${social.email}` : undefined },
   ].filter((s) => s.url);
 

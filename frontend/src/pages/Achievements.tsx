@@ -9,6 +9,7 @@ interface Achievement {
   title: string;
   description: string;
   year: string;
+  images?: string[];
 }
 
 export default function Achievements() {
@@ -41,7 +42,7 @@ export default function Achievements() {
       ) : achievements.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {achievements.map((a) => (
-            <AchievementCard key={a._id} icon={a.icon} title={a.title} description={a.description} year={a.year} />
+            <AchievementCard key={a._id} icon={a.icon} title={a.title} description={a.description} year={a.year} images={a.images} />
           ))}
         </div>
       ) : (

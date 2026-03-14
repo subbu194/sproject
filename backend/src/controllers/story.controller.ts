@@ -3,9 +3,14 @@ import TimelineEntry from '../models/TimelineEntry';
 
 export async function getTimeline(req: Request, res: Response, next: NextFunction) {
   try {
+    const query: any = {};
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ year: s }, { title: s }, { description: s }];
+    }
     const limit = parseInt(req.query.limit as string) || 100;
     const skip = parseInt(req.query.skip as string) || 0;
-    const entries = await TimelineEntry.find()
+    const entries = await TimelineEntry.find(query)
       .sort({ order: 1, createdAt: 1 })
       .skip(skip)
       .limit(limit);

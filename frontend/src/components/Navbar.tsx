@@ -26,9 +26,22 @@ export default function Navbar() {
         {/* Logo */}
         <NavLink
           to="/"
-          className="font-['Playfair_Display'] text-xl font-bold tracking-tight text-[var(--brown)]"
+          className="flex items-center gap-3 group transition-all duration-300 hover:scale-105"
         >
-          {SITE_NAME}
+          <div className="relative">
+            {/* Gold gradient background for logo */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)] via-[var(--gold-light)] to-[var(--gold)] rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+            <div className="relative bg-gradient-to-br from-[var(--gold)]/10 via-[var(--gold-light)]/5 to-[var(--gold)]/10 p-2 rounded-full border border-[var(--gold)]/20 backdrop-blur-sm">
+              <img 
+                src="/sprojectlogo.png" 
+                alt="S Project Logo" 
+                className="h-8 w-8 object-contain filter drop-shadow-sm"
+              />
+            </div>
+          </div>
+          <span className="font-['Playfair_Display'] text-xl font-bold tracking-tight text-[var(--brown)]">
+            {SITE_NAME}
+          </span>
         </NavLink>
 
         {/* Desktop nav */}

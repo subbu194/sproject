@@ -9,6 +9,7 @@ interface PressItem {
   title: string;
   year: string;
   url?: string;
+  images?: string[];
 }
 
 export default function Press() {
@@ -41,7 +42,7 @@ export default function Press() {
       ) : press.length > 0 ? (
         <div className="space-y-3">
           {press.map((p) => (
-            <PressRow key={p._id} outlet={p.outlet} title={p.title} year={p.year} link={p.url} />
+            <PressRow key={p._id} outlet={p.outlet} title={p.title} year={p.year} link={p.url} images={p.images} />
           ))}
         </div>
       ) : (

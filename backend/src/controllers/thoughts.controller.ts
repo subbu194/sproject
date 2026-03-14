@@ -12,9 +12,14 @@ function generateSlug(title: string): string {
 
 export async function getPublishedThoughts(req: Request, res: Response, next: NextFunction) {
   try {
+    const query: any = { published: true };
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ topic: s }, { title: s }, { summary: s }];
+    }
     const limit = parseInt(req.query.limit as string) || 100;
     const skip = parseInt(req.query.skip as string) || 0;
-    const thoughts = await Thought.find({ published: true })
+    const thoughts = await Thought.find(query)
       .sort({ order: 1, createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -26,9 +31,16 @@ export async function getPublishedThoughts(req: Request, res: Response, next: Ne
 
 export async function getAllThoughts(req: Request, res: Response, next: NextFunction) {
   try {
+    const query: any = {};
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ topic: s }, { title: s }, { summary: s }];
+    }
+    if (req.query.published === 'true') query.published = true;
+    if (req.query.published === 'false') query.published = false;
     const limit = parseInt(req.query.limit as string) || 500;
     const skip = parseInt(req.query.skip as string) || 0;
-    const thoughts = await Thought.find()
+    const thoughts = await Thought.find(query)
       .sort({ order: 1, createdAt: -1 })
       .skip(skip)
       .limit(limit);

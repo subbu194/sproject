@@ -8,6 +8,7 @@ interface Thought {
   topic: string;
   title: string;
   summary: string;
+  images?: string[];
 }
 
 export default function Thoughts() {
@@ -40,7 +41,7 @@ export default function Thoughts() {
       ) : thoughts.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {thoughts.map((t) => (
-            <ThoughtCard key={t._id} topic={t.topic} title={t.title} summary={t.summary} />
+            <ThoughtCard key={t._id} topic={t.topic} title={t.title} summary={t.summary} images={t.images} />
           ))}
         </div>
       ) : (

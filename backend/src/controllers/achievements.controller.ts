@@ -10,7 +10,13 @@ function isR2Url(url: string): boolean {
 
 export async function getAchievements(req: Request, res: Response, next: NextFunction) {
   try {
-    const items = await Achievement.find().sort({ order: 1, createdAt: -1 });
+    const query: any = {};
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ title: s }, { description: s }, { year: s }];
+    }
+    if (req.query.year) query.year = req.query.year as string;
+    const items = await Achievement.find(query).sort({ order: 1, createdAt: -1 });
     res.json({ success: true, data: items, count: items.length });
   } catch (err) {
     next(err);

@@ -7,6 +7,10 @@ export async function getPublishedLogs(req: Request, res: Response, next: NextFu
     if (req.query.tag) {
       query.tags = req.query.tag as string;
     }
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ title: s }, { body: s }, { tags: s }];
+    }
     const limit = parseInt(req.query.limit as string) || 100;
     const skip = parseInt(req.query.skip as string) || 0;
     const entries = await LogEntry.find(query)
@@ -30,9 +34,16 @@ export async function getTags(req: Request, res: Response, next: NextFunction) {
 
 export async function getAllLogs(req: Request, res: Response, next: NextFunction) {
   try {
+    const query: any = {};
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ title: s }, { body: s }, { tags: s }];
+    }
+    if (req.query.published === 'true') query.published = true;
+    if (req.query.published === 'false') query.published = false;
     const limit = parseInt(req.query.limit as string) || 500;
     const skip = parseInt(req.query.skip as string) || 0;
-    const entries = await LogEntry.find()
+    const entries = await LogEntry.find(query)
       .sort({ date: -1 })
       .skip(skip)
       .limit(limit);

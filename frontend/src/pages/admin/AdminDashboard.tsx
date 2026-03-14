@@ -6,8 +6,21 @@ import {
   BookOpen, CalendarDays, Lightbulb, Link2, 
   MessageSquare, Newspaper, Trophy, LogOut, 
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
-  X, ImagePlus, Loader2
+  X, ImagePlus, Loader2, Search
 } from 'lucide-react';
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 /* ─── Types ─── */
 interface TimelineEntry { _id: string; year: string; title: string; description: string; }
@@ -182,6 +195,7 @@ function extractData(res: any, fallback: any = []) { return res.data?.data ?? re
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [globalSearch, setGlobalSearch] = useState('');
 
   const sectionFromUrl = searchParams.get('section') || '';
   const activeSectionObj = SECTIONS.find(s => s.name === sectionFromUrl) || SECTIONS[0];
@@ -193,14 +207,29 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
+  const handleGlobalSearch = (value: string) => {
+    setGlobalSearch(value);
+    // Broadcast search to all sections - this will be picked up by individual managers
+    const event = new CustomEvent('globalSearch', { detail: { query: value } });
+    window.dispatchEvent(event);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#FDFBF7] font-sans selection:bg-[var(--gold)]/20">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-40 flex h-full w-[280px] flex-col border-r border-[var(--brown)]/10 bg-white shadow-2xl shadow-black/5">
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-r from-[var(--gold)] to-[var(--gold-light)] text-white shadow-lg shadow-[var(--gold)]/30">
-              <span className="font-['Playfair_Display'] text-xl font-black">A</span>
+            <div className="relative">
+              {/* Gold gradient background for admin logo */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)] via-[var(--gold-light)] to-[var(--gold)] rounded-2xl blur-lg opacity-25"></div>
+              <div className="relative bg-gradient-to-br from-[var(--gold)]/15 via-[var(--gold-light)]/10 to-[var(--gold)]/15 p-2.5 rounded-2xl border border-[var(--gold)]/25 backdrop-blur-sm">
+                <img 
+                  src="/sprojectlogo.png" 
+                  alt="S Project Admin Logo" 
+                  className="h-6 w-6 object-contain filter drop-shadow-sm"
+                />
+              </div>
             </div>
             <div>
               <h1 className="font-['Playfair_Display'] text-xl font-bold text-[var(--brown)] leading-none">Admin</h1>
@@ -242,13 +271,38 @@ export default function AdminDashboard() {
 
       {/* Main Area */}
       <main className="ml-[280px] flex-1 px-10 py-10 relative">
-        <header className="mb-10 flex items-end justify-between border-b-2 border-[var(--brown)]/5 pb-6">
-          <div>
-            <h2 className="flex items-center gap-3 font-['Playfair_Display'] text-4xl font-bold text-[var(--brown)]">
-              <activeSectionObj.icon className="h-10 w-10 text-[var(--gold)]" />
+        <header className="mb-6 flex items-center justify-between border-b border-[var(--brown)]/5 pb-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="flex items-center gap-3 font-['Playfair_Display'] text-3xl font-bold text-[var(--brown)]">
+              <activeSectionObj.icon className="h-8 w-8 text-[var(--gold)]" />
               {activeSection}
             </h2>
-            <p className="mt-3 text-sm font-bold tracking-wide text-[var(--muted)]">Core infrastructure management & logic module.</p>
+            <p className="mt-1 text-xs font-medium tracking-wide text-[var(--muted)]">Management module</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* Global search bar */}
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-[var(--muted)]" />
+              </div>
+              <input
+                type="text"
+                value={globalSearch}
+                onChange={(e) => handleGlobalSearch(e.target.value)}
+                placeholder="Search all sections..."
+                className="w-64 rounded-xl border border-[var(--brown)]/10 bg-[var(--warm-white)] py-2 pl-9 pr-3 text-sm font-medium text-[var(--brown)] placeholder-[var(--muted)]/50 outline-none transition-all hover:border-[var(--brown)]/20 focus:border-[var(--gold)] focus:bg-white focus:ring-2 focus:ring-[var(--gold)]/10"
+              />
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)] via-[var(--gold-light)] to-[var(--gold)] rounded-full blur-lg opacity-25"></div>
+              <div className="relative bg-gradient-to-br from-[var(--gold)]/15 via-[var(--gold-light)]/10 to-[var(--gold)]/15 p-2 rounded-full border border-[var(--gold)]/25 backdrop-blur-sm">
+                <img 
+                  src="/sprojectlogo.png" 
+                  alt="S Project Admin Logo" 
+                  className="h-5 w-5 object-contain filter drop-shadow-sm"
+                />
+              </div>
+            </div>
           </div>
         </header>
 
@@ -273,8 +327,19 @@ function TimelineManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ year: '', title: '', description: '' });
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/story/timeline').then((r) => setItems(extractData(r))).catch(() => {}); }, []);
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { apiClient.get('/story/timeline', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
   const openForm = (item?: TimelineEntry) => {
     if (item) {
@@ -350,8 +415,19 @@ function DailyLogManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ date: '', title: '', body: '', tags: '', images: [] as string[] });
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/log/all').then((r) => setItems(extractData(r))).catch(() => {}); }, []);
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { apiClient.get('/log/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
   const openForm = (item?: LogItem) => {
     if (item) {
@@ -438,8 +514,19 @@ function ThoughtsManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ topic: '', title: '', summary: '', images: [] as string[] });
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/thoughts/all').then((r) => setItems(extractData(r))).catch(() => {}); }, []);
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { apiClient.get('/thoughts/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
   const openForm = (item?: Thought) => {
     if (item) {
@@ -522,8 +609,19 @@ function PressManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ outlet: '', title: '', year: '', url: '', images: [] as string[] });
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/press').then((r) => setItems(extractData(r))).catch(() => {}); }, []);
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { apiClient.get('/press', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
   const openForm = (item?: PressItem) => {
     if (item) {
@@ -603,8 +701,19 @@ function AchievementsManager() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ icon: '', title: '', description: '', year: '', images: [] as string[] });
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/achievements').then((r) => setItems(extractData(r))).catch(() => {}); }, []);
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { apiClient.get('/achievements', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
   const openForm = (item?: Achievement) => {
     if (item) {
@@ -712,12 +821,29 @@ function ConnectManager() {
 }
 
 function ContactsViewer() {
-  const [contacts, setContacts] = useState<ContactEntry[]>([]);
+  const [items, setItems] = useState<ContactEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
-  useEffect(() => { apiClient.get('/contact').then((r) => setContacts(extractData(r))).catch(() => {}).finally(() => setLoading(false)); }, []);
-  const markRead = async (id: string) => { try { await apiClient.patch(`/contact/${id}/read`, {}); setContacts(contacts.map((c) => c._id === id ? { ...c, read: true } : c)); } catch (e) { console.error('Failed to mark read', e); } };
-  const remove = async (id: string) => { try { await apiClient.delete(`/contact/${id}`); setContacts(contacts.filter((c) => c._id !== id)); } catch (e) { console.error('Failed to eliminate', e); } };
+  // Listen for global search events
+  useEffect(() => {
+    const handleGlobalSearch = (event: CustomEvent) => {
+      setSearch(event.detail.query);
+    };
+    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
+    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
+  }, []);
+
+  useEffect(() => { 
+    setLoading(true);
+    apiClient.get('/contact', { params: { search: debouncedSearch } })
+      .then((r) => setItems(extractData(r)))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, [debouncedSearch]);
+  const markRead = async (id: string) => { try { await apiClient.patch(`/contact/${id}/read`, {}); setItems(items.map((c) => c._id === id ? { ...c, read: true } : c)); } catch (e) { console.error('Failed to mark read', e); } };
+  const remove = async (id: string) => { try { await apiClient.delete(`/contact/${id}`); setItems(items.filter((c) => c._id !== id)); } catch (e) { console.error('Failed to eliminate', e); } };
 
   return (
     <Panel title="Inbound Transmissions" description="Monitor and clear inbound user inquiries directly.">
@@ -725,14 +851,14 @@ function ContactsViewer() {
         <div className="space-y-4 animate-pulse">
           {[1,2,3].map(i => <div key={i} className="h-28 rounded-2xl bg-[var(--brown)]/5" />)}
         </div>
-      ) : contacts.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-[var(--brown)]/10 rounded-3xl bg-[var(--warm-white)]/50">
           <MessageSquare className="h-12 w-12 text-[var(--muted)]/40 mb-4" />
           <p className="font-bold text-[var(--muted)] text-xl">Transmission log empty.</p>
         </div>
       ) : (
         <div className="grid gap-6">
-          {contacts.map((c) => (
+          {items.map((c: ContactEntry) => (
             <div key={c._id} className={`group relative rounded-3xl border-2 p-8 transition-shadow hover:shadow-xl ${c.read ? 'border-[var(--brown)]/5 bg-[#FDFBF7]' : 'border-[var(--gold)]/40 bg-white shadow-lg'}`}>
               {!c.read && (
                 <div className="absolute -top-3 -right-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-md ring-4 ring-white">NEW THREAD</div>

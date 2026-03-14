@@ -3,9 +3,15 @@ import PressItem from '../models/PressItem';
 
 export async function getPress(req: Request, res: Response, next: NextFunction) {
   try {
+    const query: any = {};
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ outlet: s }, { title: s }, { year: s }];
+    }
+    if (req.query.year) query.year = req.query.year as string;
     const limit = parseInt(req.query.limit as string) || 100;
     const skip = parseInt(req.query.skip as string) || 0;
-    const items = await PressItem.find()
+    const items = await PressItem.find(query)
       .sort({ order: 1, createdAt: -1 })
       .skip(skip)
       .limit(limit);

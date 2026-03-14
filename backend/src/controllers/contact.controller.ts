@@ -27,6 +27,10 @@ export async function getContacts(req: Request, res: Response, next: NextFunctio
     if (req.query.unread === 'true') {
       query.read = false;
     }
+    if (req.query.search) {
+      const s = new RegExp(req.query.search as string, 'i');
+      query.$or = [{ name: s }, { email: s }, { message: s }];
+    }
     const submissions = await ContactSubmission.find(query).sort({ submittedAt: -1 });
     res.json({ success: true, data: submissions, count: submissions.length });
   } catch (err) {

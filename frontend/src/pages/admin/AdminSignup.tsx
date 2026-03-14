@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
-import { ArrowLeft, KeyRound, Mail, ShieldPlus, User } from 'lucide-react';
+import { ArrowLeft, KeyRound, Mail, User } from 'lucide-react';
 
 export default function AdminSignup() {
   const navigate = useNavigate();
@@ -42,8 +42,18 @@ export default function AdminSignup() {
         </NavLink>
 
         <div className="rounded-2xl border border-[var(--brown)]/10 bg-white/80 p-10 shadow-xl shadow-black/5 backdrop-blur-xl">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--gold)] text-white shadow-lg shadow-[var(--gold)]/20 mb-6">
-            <ShieldPlus className="h-6 w-6" />
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              {/* Gold gradient background for signup logo */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)] via-[var(--gold-light)] to-[var(--gold)] rounded-xl blur-lg opacity-25"></div>
+              <div className="relative bg-gradient-to-br from-[var(--gold)]/15 via-[var(--gold-light)]/10 to-[var(--gold)]/15 p-3 rounded-xl border border-[var(--gold)]/25 backdrop-blur-sm">
+                <img 
+                  src="/sprojectlogo.png" 
+                  alt="S Project Admin Logo" 
+                  className="h-6 w-6 object-contain filter drop-shadow-sm"
+                />
+              </div>
+            </div>
           </div>
           
           <div className="text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
