@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import PressItem from '../models/PressItem';
+import { deleteFileFromR2 } from '../utils/fileUpload';
+
+const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL || '';
+
+function isR2Url(url: string): boolean {
+  return !!R2_PUBLIC_BASE && url.startsWith(R2_PUBLIC_BASE);
+}
 
 export async function getPress(req: Request, res: Response, next: NextFunction) {
   try {
@@ -53,11 +60,26 @@ export async function updatePress(req: Request, res: Response, next: NextFunctio
 
 export async function deletePress(req: Request, res: Response, next: NextFunction) {
   try {
-    const item = await PressItem.findByIdAndDelete(req.params.id);
+    const item = await PressItem.findById(req.params.id);
     if (!item) {
       res.status(404).json({ success: false, error: 'Press item not found' });
       return;
     }
+
+    // Delete all associated images from R2
+    if (item.images && item.images.length > 0) {
+      for (const imageUrl of item.images) {
+        if (isR2Url(imageUrl)) {
+          try {
+            await deleteFileFromR2(imageUrl);
+          } catch (err) {
+            console.warn('Failed to delete image from R2:', err);
+          }
+        }
+      }
+    }
+
+    await PressItem.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });
   } catch (err) {
     next(err);

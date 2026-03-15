@@ -81,6 +81,19 @@ export async function deleteAchievement(req: Request, res: Response, next: NextF
       }
     }
 
+    // Delete all associated images from R2
+    if (item.images && item.images.length > 0) {
+      for (const imageUrl of item.images) {
+        if (isR2Url(imageUrl)) {
+          try {
+            await deleteFileFromR2(imageUrl);
+          } catch (err) {
+            console.warn('Failed to delete image from R2:', err);
+          }
+        }
+      }
+    }
+
     await Achievement.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });
   } catch (err) {

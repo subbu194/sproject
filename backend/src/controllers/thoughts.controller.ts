@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import Thought from '../models/Thought';
+import { deleteFileFromR2 } from '../utils/fileUpload';
+
+const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL || '';
+
+function isR2Url(url: string): boolean {
+  return !!R2_PUBLIC_BASE && url.startsWith(R2_PUBLIC_BASE);
+}
 
 function generateSlug(title: string): string {
   return title
@@ -102,11 +109,26 @@ export async function togglePublishThought(req: Request, res: Response, next: Ne
 
 export async function deleteThought(req: Request, res: Response, next: NextFunction) {
   try {
-    const thought = await Thought.findByIdAndDelete(req.params.id);
+    const thought = await Thought.findById(req.params.id);
     if (!thought) {
       res.status(404).json({ success: false, error: 'Thought not found' });
       return;
     }
+
+    // Delete all associated images from R2
+    if (thought.images && thought.images.length > 0) {
+      for (const imageUrl of thought.images) {
+        if (isR2Url(imageUrl)) {
+          try {
+            await deleteFileFromR2(imageUrl);
+          } catch (err) {
+            console.warn('Failed to delete image from R2:', err);
+          }
+        }
+      }
+    }
+
+    await Thought.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });
   } catch (err) {
     next(err);

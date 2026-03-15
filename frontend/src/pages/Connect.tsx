@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
 import ContactForm from '../components/ContactForm';
+import { FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import { Mail, ArrowLeft } from 'lucide-react';
 
 interface SocialLinks {
   whatsapp?: string;
   instagram?: string;
   linkedin?: string;
+  twitter?: string;
   email?: string;
 }
 
@@ -21,11 +25,48 @@ export default function Connect() {
       .finally(() => setLoading(false));
   }, []);
 
+  const formatUrl = (url?: string) => {
+    if (!url) return undefined;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) return url;
+    return `https://${url}`;
+  };
+
   const socialButtons = [
-    { key: 'whatsapp', label: 'WhatsApp', icon: '💬', url: social.whatsapp },
-    { key: 'instagram', label: 'Instagram', icon: '📷', url: social.instagram },
-    { key: 'linkedin', label: 'LinkedIn', icon: '💼', url: social.linkedin },
-    { key: 'email', label: 'Email', icon: '✉️', url: social.email ? `mailto:${social.email}` : undefined },
+    {
+      key: 'whatsapp',
+      label: 'WhatsApp',
+      icon: <FaWhatsapp className="h-5 w-5" />,
+      url: formatUrl(social.whatsapp),
+      hoverClass: 'hover:border-green-400 hover:bg-green-500 hover:text-white',
+    },
+    {
+      key: 'instagram',
+      label: 'Instagram',
+      icon: <FaInstagram className="h-5 w-5" />,
+      url: formatUrl(social.instagram),
+      hoverClass: 'hover:border-pink-400 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white',
+    },
+    {
+      key: 'linkedin',
+      label: 'LinkedIn',
+      icon: <FaLinkedin className="h-5 w-5" />,
+      url: formatUrl(social.linkedin),
+      hoverClass: 'hover:border-blue-400 hover:bg-blue-600 hover:text-white',
+    },
+    {
+      key: 'twitter',
+      label: 'X (Twitter)',
+      icon: <FaXTwitter className="h-5 w-5" />,
+      url: formatUrl(social.twitter),
+      hoverClass: 'hover:border-neutral-400 hover:bg-neutral-900 hover:text-white',
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      icon: <Mail className="h-5 w-5" />,
+      url: social.email ? `mailto:${social.email}` : undefined,
+      hoverClass: 'hover:border-[var(--gold)] hover:bg-[var(--gold)] hover:text-white',
+    },
   ].filter((s) => s.url);
 
   return (
@@ -34,9 +75,10 @@ export default function Connect() {
         {/* Back */}
         <a
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl border border-[var(--cream)]/15 px-4 py-2 text-sm font-medium text-[var(--cream)] transition hover:border-[var(--gold)] hover:text-[var(--gold)]"
+          className="group inline-flex items-center gap-2 rounded-xl border border-[var(--cream)]/15 px-4 py-2 text-sm font-medium text-[var(--cream)] transition hover:border-[var(--gold)] hover:text-[var(--gold)]"
         >
-          <span aria-hidden>←</span> Back to Home
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Back to Home
         </a>
 
         <div className="mt-8">
@@ -70,9 +112,9 @@ export default function Connect() {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-xl border border-[var(--gold)]/30 px-6 py-3.5 text-sm font-medium text-[var(--cream)] transition-all duration-200 hover:border-[var(--gold)] hover:bg-[var(--gold)] hover:text-white"
+                      className={`inline-flex items-center gap-2.5 rounded-xl border border-[var(--cream)]/15 px-6 py-3.5 text-sm font-medium text-[var(--cream)] transition-all duration-200 ${s.hoverClass}`}
                     >
-                      <span className="text-lg">{s.icon}</span>
+                      {s.icon}
                       {s.label}
                     </a>
                   ))

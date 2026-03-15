@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
 import { setAdminToken } from '../../api/client';
@@ -10,6 +10,31 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // If the admin already has a valid token, redirect to dashboard immediately
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setCheckingAuth(false);
+      return;
+    }
+
+    // Ensure the Authorization header is set before verifying
+    setAdminToken(token);
+
+    apiClient.get('/auth/me')
+      .then(() => {
+        // Token is valid — go straight to dashboard
+        navigate('/admin/dashboard', { replace: true });
+      })
+      .catch(() => {
+        // Token is invalid/expired — clear it and show login form
+        localStorage.removeItem('adminToken');
+        setAdminToken(undefined);
+        setCheckingAuth(false);
+      });
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +63,12 @@ export default function AdminLogin() {
       <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-[var(--gold)]/20 blur-[100px]" />
       <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-[var(--brown)]/10 blur-[120px]" />
 
+      {checkingAuth ? (
+        <div className="flex flex-col items-center gap-4 relative z-10">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--gold)]/30 border-t-[var(--gold)]" />
+          <p className="text-sm font-medium text-[var(--muted)]">Checking session...</p>
+        </div>
+      ) : (
       <div className="w-full max-w-md relative z-10">
         <NavLink
           to="/"
@@ -121,6 +152,7 @@ export default function AdminLogin() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
