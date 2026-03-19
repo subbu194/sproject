@@ -829,6 +829,7 @@ function ContactsViewer() {
   // Listen for global search events
   useEffect(() => {
     const handleGlobalSearch = (event: CustomEvent) => {
+      setLoading(true);
       setSearch(event.detail.query);
     };
     window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
@@ -836,7 +837,6 @@ function ContactsViewer() {
   }, []);
 
   useEffect(() => { 
-    setLoading(true);
     apiClient.get('/contact', { params: { search: debouncedSearch } })
       .then((r) => setItems(extractData(r)))
       .catch(() => setItems([]))

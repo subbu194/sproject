@@ -74,7 +74,13 @@ export default function ConnectPreview() {
           Connect
         </div>
         <h2 className="mt-2 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--cream)] sm:text-4xl">
-          Let's Work Together
+          Let's Work Together{' '}
+          <span className="align-middle text-xl font-bold sm:text-4xl">+</span>
+          {' '}Create Together{' '}
+          <span className="align-middle text-xl font-bold sm:text-4xl">+</span>
+          {' '}Grow Together{' '}
+          <span className="align-middle text-xl font-bold sm:text-4xl">=</span>
+          {' '}SUCCESS
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--cream)]/70">
           Whether it's a project, partnership, or just a conversation — I'd love to hear from you.

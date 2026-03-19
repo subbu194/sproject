@@ -21,7 +21,7 @@ export default function Navbar() {
               <img 
                 src="/sprojectlogo.png" 
                 alt="S Project Logo" 
-                className="h-8 w-8 object-contain filter drop-shadow-sm"
+                className="h-10 w-10 object-contain filter drop-shadow-sm"
               />
             </div>
           </div>

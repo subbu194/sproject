@@ -7,14 +7,15 @@ interface AdminGuardProps {
 }
 
 export default function AdminGuard({ children }: AdminGuardProps) {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(() => (
+    localStorage.getItem('adminToken') ? null : false
+  ));
   const hasVerified = useRef(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
 
     if (!token) {
-      setIsAuthorized(false);
       return;
     }
 
