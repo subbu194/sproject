@@ -10,7 +10,7 @@ function isR2Url(url: string): boolean {
 
 export async function getAchievements(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ title: s }, { description: s }, { year: s }];

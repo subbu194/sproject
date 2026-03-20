@@ -10,7 +10,7 @@ function isR2Url(url: string): boolean {
 
 export async function getPublishedLogs(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = { published: true };
+    const query: Record<string, any> = { published: true };
     if (req.query.tag) {
       query.tags = req.query.tag as string;
     }
@@ -41,7 +41,7 @@ export async function getTags(req: Request, res: Response, next: NextFunction) {
 
 export async function getAllLogs(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ title: s }, { body: s }, { tags: s }];

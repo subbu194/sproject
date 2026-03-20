@@ -23,7 +23,7 @@ export async function submitContact(req: Request, res: Response, next: NextFunct
 
 export async function getContacts(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.unread === 'true') {
       query.read = false;
     }

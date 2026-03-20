@@ -45,8 +45,12 @@ app.use('/api/v1/connect', connectRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 
+interface ErrorWithStatus extends Error {
+  status?: number;
+}
+
 // Global error handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: ErrorWithStatus, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack || err);
   const status = err.status || 500;
   // Prevent leaking internal error details on 500s

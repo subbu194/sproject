@@ -3,7 +3,7 @@ import TimelineEntry from '../models/TimelineEntry';
 
 export async function getTimeline(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ year: s }, { title: s }, { description: s }];

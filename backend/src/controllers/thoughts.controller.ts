@@ -19,7 +19,7 @@ function generateSlug(title: string): string {
 
 export async function getPublishedThoughts(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = { published: true };
+    const query: Record<string, any> = { published: true };
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ topic: s }, { title: s }, { summary: s }];
@@ -38,7 +38,7 @@ export async function getPublishedThoughts(req: Request, res: Response, next: Ne
 
 export async function getAllThoughts(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ topic: s }, { title: s }, { summary: s }];
