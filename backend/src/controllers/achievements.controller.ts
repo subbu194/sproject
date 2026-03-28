@@ -10,7 +10,7 @@ function isR2Url(url: string): boolean {
 
 export async function getAchievements(req: Request, res: Response, next: NextFunction) {
   try {
-    const query: any = {};
+    const query: Record<string, any> = {};
     if (req.query.search) {
       const s = new RegExp(req.query.search as string, 'i');
       query.$or = [{ title: s }, { description: s }, { year: s }];
@@ -78,6 +78,19 @@ export async function deleteAchievement(req: Request, res: Response, next: NextF
         await deleteFileFromR2(item.icon);
       } catch (err) {
         console.warn('Failed to delete icon from R2:', err);
+      }
+    }
+
+    // Delete all associated images from R2
+    if (item.images && item.images.length > 0) {
+      for (const imageUrl of item.images) {
+        if (isR2Url(imageUrl)) {
+          try {
+            await deleteFileFromR2(imageUrl);
+          } catch (err) {
+            console.warn('Failed to delete image from R2:', err);
+          }
+        }
       }
     }
 

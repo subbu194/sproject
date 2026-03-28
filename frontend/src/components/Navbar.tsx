@@ -1,24 +1,10 @@
 import { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { NAV_ITEMS } from '../constants/navItems';
 import { SITE_NAME } from '../constants/content';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleNavClick = (path: string, sectionId: string) => {
-    setMobileOpen(false);
-    if (location.pathname === '/') {
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-    }
-    navigate(path);
-  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--gold)]/10 bg-[var(--warm-white)]/95 backdrop-blur-md">
@@ -35,7 +21,7 @@ export default function Navbar() {
               <img 
                 src="/sprojectlogo.png" 
                 alt="S Project Logo" 
-                className="h-8 w-8 object-contain filter drop-shadow-sm"
+                className="h-10 w-10 object-contain filter drop-shadow-sm"
               />
             </div>
           </div>
@@ -47,13 +33,19 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map((item) => (
-            <button
+            <NavLink
               key={item.sectionId}
-              onClick={() => handleNavClick(item.path, item.sectionId)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--muted)] transition-all duration-200 hover:bg-[var(--cream)] hover:text-[var(--brown)]"
+              to={item.path}
+              className={({ isActive }) =>
+                `rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-[var(--cream)] hover:text-[var(--brown)] ${
+                  isActive
+                    ? 'bg-[var(--cream)] text-[var(--brown)]'
+                    : 'text-[var(--muted)]'
+                }`
+              }
             >
               {item.label}
-            </button>
+            </NavLink>
           ))}
         </div>
 
@@ -80,13 +72,20 @@ export default function Navbar() {
         <div className="border-t border-[var(--gold)]/10 bg-[var(--warm-white)] px-6 py-4 md:hidden">
           <div className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => (
-              <button
+              <NavLink
                 key={item.sectionId}
-                onClick={() => handleNavClick(item.path, item.sectionId)}
-                className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--cream)] hover:text-[var(--brown)]"
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-[var(--cream)] hover:text-[var(--brown)] ${
+                    isActive
+                      ? 'bg-[var(--cream)] text-[var(--brown)]'
+                      : 'text-[var(--muted)]'
+                  }`
+                }
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
           </div>
         </div>

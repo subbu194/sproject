@@ -18,10 +18,13 @@ export default function DailyLog() {
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState('');
+  const handleTagSelect = (tag: string) => {
+    setLoading(true);
+    setActiveTag(tag);
+  };
 
   useEffect(() => {
     const url = activeTag ? `/log?tag=${encodeURIComponent(activeTag)}` : '/log';
-    setLoading(true);
     apiClient
       .get(url)
       .then((res) => {
@@ -74,7 +77,7 @@ export default function DailyLog() {
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
                   Filter by Tag
                 </h3>
-                <TagFilter tags={allTags} activeTag={activeTag} onSelect={setActiveTag} />
+                <TagFilter tags={allTags} activeTag={activeTag} onSelect={handleTagSelect} />
               </div>
             )}
           </div>
