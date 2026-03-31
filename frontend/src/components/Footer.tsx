@@ -5,7 +5,7 @@ import { NAV_ITEMS } from '../constants/navItems';
 import apiClient from '../api/client';
 import { FaWhatsapp, FaInstagram, FaLinkedin, FaFacebook } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import { Mail } from 'lucide-react';
+import { ChevronUp, Mail } from 'lucide-react';
 
 interface SocialLinks {
   whatsapp?: string;
@@ -153,9 +153,9 @@ export default function Footer() {
         className={`back-to-top ${showBackToTop ? 'visible' : ''}`}
         aria-label="Back to top"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="18 15l-6-6-6 6" />
-        </svg>
+        <span className="back-to-top__icon" aria-hidden="true">
+          <ChevronUp size={18} strokeWidth={2.75} />
+        </span>
       </button>
     </>
   );

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import apiClient from '../../api/client';
 import TimelineItem from '../../components/TimelineItem';
-import { DEMO_STORY, STORY_IMAGES } from '../../constants/placeholders';
 
 interface TimelineEntry {
   _id: string;
@@ -27,12 +26,7 @@ export default function StoryPreview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = timeline.length > 0
-    ? timeline.slice(0, 4).map((entry, i) => ({
-        ...entry,
-        images: entry.images && entry.images.length > 0 ? entry.images : [STORY_IMAGES[i % STORY_IMAGES.length]],
-      }))
-    : DEMO_STORY;
+  const items = timeline.slice(0, 4);
 
   return (
     <section id="story" className="scroll-mt-24 bg-[var(--cream)] py-20 lg:py-28">
@@ -61,6 +55,10 @@ export default function StoryPreview() {
             {[1, 2, 3].map((i) => (
               <div key={i} className="skeleton h-20 w-full" />
             ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="mt-10 rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-10 text-center text-sm text-[var(--muted)]">
+            Timeline coming soon.
           </div>
         ) : (
           <div className="mt-10">

@@ -10,6 +10,7 @@ interface PressItem {
   title: string;
   year: string;
   link?: string;
+  url?: string;
   images?: string[];
 }
 
@@ -28,9 +29,10 @@ export default function PressPreview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = press.length > 0
+  const items: PressItem[] = press.length > 0
     ? press.slice(0, 5).map((p, i) => ({
         ...p,
+        link: p.link || p.url,
         images: p.images && p.images.length > 0 ? p.images : [PRESS_IMAGES[i % PRESS_IMAGES.length]],
       }))
     : DEMO_PRESS;

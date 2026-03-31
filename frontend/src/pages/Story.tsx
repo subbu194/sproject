@@ -11,14 +11,6 @@ interface TimelineEntry {
   images?: string[];
 }
 
-const placeholderImages = [
-  'https://picsum.photos/seed/story1/400/300',
-  'https://picsum.photos/seed/story2/400/300',
-  'https://picsum.photos/seed/story3/400/300',
-  'https://picsum.photos/seed/story4/400/300',
-  'https://picsum.photos/seed/story5/400/300',
-];
-
 export default function Story() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +48,7 @@ export default function Story() {
                 title={entry.title}
                 description={entry.description}
                 isLast={i === timeline.length - 1}
-                images={entry.images && entry.images.length > 0 ? entry.images : [placeholderImages[i % placeholderImages.length]]}
+                images={entry.images}
               />
             ))
           ) : (

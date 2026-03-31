@@ -4,11 +4,25 @@ import { hashPassword, comparePassword, isStrongPassword } from '../utils/passwo
 import { signJwt } from '../utils/jwt';
 import type { JwtPayload } from '../types';
 
+function getAdminSignupLimit() {
+  const envLimit = Number(process.env.ADMIN_SIGNUP_LIMIT);
+  if (Number.isInteger(envLimit) && envLimit > 0) {
+    return envLimit;
+  }
+
+  // Safer defaults: single root admin in production, two admins elsewhere.
+  return process.env.NODE_ENV === 'production' ? 1 : 2;
+}
+
 export async function signup(req: Request, res: Response, next: NextFunction) {
   try {
-    const existing = await Admin.findOne();
-    if (existing) {
-      res.status(403).json({ success: false, error: 'Admin already exists' });
+    const adminLimit = getAdminSignupLimit();
+    const existingCount = await Admin.countDocuments();
+    if (existingCount >= adminLimit) {
+      res.status(403).json({
+        success: false,
+        error: `Admin limit reached (${adminLimit}). Contact the team owner to add access.`,
+      });
       return;
     }
 

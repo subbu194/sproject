@@ -201,6 +201,11 @@ export default function AdminDashboard() {
   const activeSectionObj = SECTIONS.find(s => s.name === sectionFromUrl) || SECTIONS[0];
   const activeSection = activeSectionObj.name;
 
+  useEffect(() => {
+    // Prevent stale cross-section filters from making unrelated modules look empty.
+    setGlobalSearch('');
+  }, [activeSection]);
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     setAdminToken(undefined);
@@ -209,9 +214,6 @@ export default function AdminDashboard() {
 
   const handleGlobalSearch = (value: string) => {
     setGlobalSearch(value);
-    // Broadcast search to all sections - this will be picked up by individual managers
-    const event = new CustomEvent('globalSearch', { detail: { query: value } });
-    window.dispatchEvent(event);
   };
 
   return (
@@ -307,13 +309,13 @@ export default function AdminDashboard() {
         </header>
 
         <div className="mx-auto max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
-          {activeSection === 'Story / Timeline' && <TimelineManager />}
-          {activeSection === 'Daily Log' && <DailyLogManager />}
-          {activeSection === 'Thoughts' && <ThoughtsManager />}
-          {activeSection === 'Press' && <PressManager />}
-          {activeSection === 'Achievements' && <AchievementsManager />}
+          {activeSection === 'Story / Timeline' && <TimelineManager searchQuery={globalSearch} />}
+          {activeSection === 'Daily Log' && <DailyLogManager searchQuery={globalSearch} />}
+          {activeSection === 'Thoughts' && <ThoughtsManager searchQuery={globalSearch} />}
+          {activeSection === 'Press' && <PressManager searchQuery={globalSearch} />}
+          {activeSection === 'Achievements' && <AchievementsManager searchQuery={globalSearch} />}
           {activeSection === 'Connect' && <ConnectManager />}
-          {activeSection === 'Contact Submissions' && <ContactsViewer />}
+          {activeSection === 'Contact Submissions' && <ContactsViewer searchQuery={globalSearch} />}
         </div>
       </main>
     </div>
@@ -322,22 +324,12 @@ export default function AdminDashboard() {
 
 /* ─── MANAGERS ─── */
 
-function TimelineManager() {
+function TimelineManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<TimelineEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ year: '', title: '', description: '' });
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/story/timeline', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
@@ -410,22 +402,12 @@ function TimelineManager() {
   );
 }
 
-function DailyLogManager() {
+function DailyLogManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<LogItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ date: '', title: '', body: '', tags: '', images: [] as string[] });
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/log/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
@@ -509,22 +491,12 @@ function DailyLogManager() {
   );
 }
 
-function ThoughtsManager() {
+function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Thought[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ topic: '', title: '', summary: '', images: [] as string[] });
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/thoughts/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
@@ -604,22 +576,12 @@ function ThoughtsManager() {
   );
 }
 
-function PressManager() {
+function PressManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<PressItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ outlet: '', title: '', year: '', url: '', images: [] as string[] });
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/press', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
@@ -696,22 +658,12 @@ function PressManager() {
   );
 }
 
-function AchievementsManager() {
+function AchievementsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Achievement[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ icon: '', title: '', description: '', year: '', images: [] as string[] });
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/achievements', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
 
@@ -821,21 +773,10 @@ function ConnectManager() {
   );
 }
 
-function ContactsViewer() {
+function ContactsViewer({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<ContactEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Listen for global search events
-  useEffect(() => {
-    const handleGlobalSearch = (event: CustomEvent) => {
-      setLoading(true);
-      setSearch(event.detail.query);
-    };
-    window.addEventListener('globalSearch', handleGlobalSearch as EventListener);
-    return () => window.removeEventListener('globalSearch', handleGlobalSearch as EventListener);
-  }, []);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { 
     apiClient.get('/contact', { params: { search: debouncedSearch } })
