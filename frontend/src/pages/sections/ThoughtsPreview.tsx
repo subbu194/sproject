@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import apiClient from '../../api/client';
-import ThoughtCard from '../../components/ThoughtCard';
+import LogEntry from '../../components/LogEntry';
+import { DEMO_THOUGHTS, THOUGHT_IMAGES } from '../../constants/placeholders';
 
 interface Thought {
   _id: string;
   topic: string;
   title: string;
   summary: string;
+  images?: string[];
+  createdAt?: string;
 }
 
 export default function ThoughtsPreview() {
@@ -25,41 +28,61 @@ export default function ThoughtsPreview() {
       .finally(() => setLoading(false));
   }, []);
 
+  const items: Thought[] = thoughts.length > 0
+    ? thoughts.slice(0, 3).map((t, i) => ({
+        ...t,
+        images: t.images && t.images.length > 0 ? t.images : [THOUGHT_IMAGES[i % THOUGHT_IMAGES.length]],
+      }))
+    : DEMO_THOUGHTS as Thought[];
+
   return (
-    <section id="thoughts" className="scroll-mt-24 bg-[var(--warm-white)] py-16 lg:py-20">
+    <section id="thoughts" className="scroll-mt-24 bg-[var(--warm-white)] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+              <span className="inline-block h-px w-6 bg-[var(--gold)]" />
               Thoughts
             </div>
-            <h2 className="mt-2 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
+            <h2 className="mt-3 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
               Insights & Ideas
             </h2>
           </div>
           <NavLink
             to="/page/thoughts"
-            className="text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
+            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
           >
-            View All →
+            View All
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </NavLink>
         </div>
 
         {loading ? (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="skeleton h-40 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : thoughts.length > 0 ? (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {thoughts.slice(0, 3).map((t) => (
-              <ThoughtCard key={t._id} topic={t.topic} title={t.title} summary={t.summary} />
+              <div key={i} className="skeleton h-28 w-full rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-10 text-center text-sm text-[var(--muted)]">
-            No thoughts published yet.
+          <div className="mt-8 space-y-4">
+            {items.map((t) => (
+              <LogEntry
+                key={t._id}
+                date={t.createdAt
+                  ? new Date(t.createdAt).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : t.topic}
+                title={t.title}
+                body={t.summary}
+                tags={[t.topic]}
+                images={t.images}
+                readMoreLink="/page/thoughts"
+              />
+            ))}
           </div>
         )}
       </div>

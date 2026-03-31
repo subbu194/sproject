@@ -28,7 +28,7 @@ interface LogItem { _id: string; date: string; title: string; body: string; tags
 interface Thought { _id: string; topic: string; title: string; summary: string; published: boolean; images: string[]; }
 interface PressItem { _id: string; outlet: string; title: string; year: string; url: string; images: string[]; }
 interface Achievement { _id: string; icon: string; title: string; description: string; year: string; images: string[]; }
-interface SocialLinks { whatsapp: string; instagram: string; linkedin: string; twitter: string; email: string; }
+interface SocialLinks { whatsapp: string; instagram: string; linkedin: string; twitter: string; facebook: string; email: string; }
 interface ContactEntry { _id: string; name: string; email: string; message: string; read: boolean; submittedAt: string; }
 
 /* ─── Config ─── */
@@ -790,7 +790,7 @@ function AchievementsManager() {
 }
 
 function ConnectManager() {
-  const [data, setData] = useState<SocialLinks>({ whatsapp: '', instagram: '', linkedin: '', twitter: '', email: '' });
+  const [data, setData] = useState<SocialLinks>({ whatsapp: '', instagram: '', linkedin: '', twitter: '', facebook: '', email: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -808,8 +808,9 @@ function ConnectManager() {
           <FormInput label="Global Priority Email" value={data.email} onChange={(v) => setData({ ...data, email: v })} type="email" />
           <FormInput label="LinkedIn Canonical" value={data.linkedin} onChange={(v) => setData({ ...data, linkedin: v })} />
           <FormInput label="Twitter / X Platform" value={data.twitter} onChange={(v) => setData({ ...data, twitter: v })} />
+          <FormInput label="Facebook Profile" value={data.facebook} onChange={(v) => setData({ ...data, facebook: v })} />
           <FormInput label="WhatsApp Encryption URL" value={data.whatsapp} onChange={(v) => setData({ ...data, whatsapp: v })} />
-          <div className="md:col-span-2">
+          <div>
             <FormInput label="Instagram Graph Web" value={data.instagram} onChange={(v) => setData({ ...data, instagram: v })} />
           </div>
           

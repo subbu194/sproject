@@ -5,6 +5,7 @@ export interface ISocialLink extends Document {
   instagram: string;
   linkedin: string;
   twitter: string;
+  facebook: string;
   email: string;
 }
 
@@ -14,6 +15,7 @@ const SocialLinkSchema = new Schema<ISocialLink>(
     instagram: { type: String, default: '' },
     linkedin: { type: String, default: '' },
     twitter: { type: String, default: '' },
+    facebook: { type: String, default: '' },
     email: { type: String, default: '' },
   },
   { timestamps: true }

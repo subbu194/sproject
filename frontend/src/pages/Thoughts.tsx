@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import apiClient from '../api/client';
 import SectionPageShell from '../components/SectionPageShell';
-import ThoughtCard from '../components/ThoughtCard';
+import LogEntry from '../components/LogEntry';
+import CalendarWidget from '../components/CalendarWidget';
 
 interface Thought {
   _id: string;
@@ -9,6 +10,7 @@ interface Thought {
   title: string;
   summary: string;
   images?: string[];
+  createdAt?: string;
 }
 
 export default function Thoughts() {
@@ -26,27 +28,61 @@ export default function Thoughts() {
       .finally(() => setLoading(false));
   }, []);
 
+  const entryDates = useMemo(
+    () => thoughts.filter((t) => t.createdAt).map((t) => t.createdAt as string),
+    [thoughts],
+  );
+
   return (
     <SectionPageShell
       kicker="Thoughts"
       title="Insights & Ideas"
       subtitle="Reflections, lessons, and observations from the journey."
     >
-      {loading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-40 w-full rounded-2xl" />
-          ))}
-        </div>
-      ) : thoughts.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {thoughts.map((t) => (
-            <ThoughtCard key={t._id} topic={t.topic} title={t.title} summary={t.summary} images={t.images} />
-          ))}
+      {loading && thoughts.length === 0 ? (
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          <div className="space-y-4">
+            <div className="skeleton h-64 w-full rounded-2xl" />
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="skeleton h-28 w-full rounded-2xl" />
+            ))}
+          </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-10 text-center text-sm text-[var(--muted)]">
-          No thoughts published yet.
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <CalendarWidget entryDates={entryDates} />
+          </div>
+
+          {/* Feed */}
+          <div className="space-y-4">
+            {thoughts.length > 0 ? (
+              thoughts.map((t) => (
+                <LogEntry
+                  key={t._id}
+                  date={t.createdAt
+                    ? new Date(t.createdAt).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : t.topic}
+                  title={t.title}
+                  body={t.summary}
+                  tags={[t.topic]}
+                  images={t.images}
+                />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-10 text-center text-sm text-[var(--muted)]">
+                No thoughts published yet.
+              </div>
+            )}
+          </div>
         </div>
       )}
     </SectionPageShell>

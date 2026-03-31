@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import apiClient from '../../api/client';
 import TimelineItem from '../../components/TimelineItem';
+import { DEMO_STORY, STORY_IMAGES } from '../../constants/placeholders';
 
 interface TimelineEntry {
   _id: string;
   year: string;
   title: string;
   description: string;
+  images?: string[];
 }
 
 export default function StoryPreview() {
@@ -25,23 +27,32 @@ export default function StoryPreview() {
       .finally(() => setLoading(false));
   }, []);
 
+  const items = timeline.length > 0
+    ? timeline.slice(0, 4).map((entry, i) => ({
+        ...entry,
+        images: entry.images && entry.images.length > 0 ? entry.images : [STORY_IMAGES[i % STORY_IMAGES.length]],
+      }))
+    : DEMO_STORY;
+
   return (
-    <section id="story" className="scroll-mt-24 bg-[var(--cream)] py-16 lg:py-20">
+    <section id="story" className="scroll-mt-24 bg-[var(--cream)] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+              <span className="inline-block h-px w-6 bg-[var(--gold)]" />
               My Story
             </div>
-            <h2 className="mt-2 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
+            <h2 className="mt-3 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
               The journey so far.
             </h2>
           </div>
           <NavLink
             to="/page/story"
-            className="text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
+            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
           >
-            View Full Story →
+            View Full Story
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </NavLink>
         </div>
 
@@ -53,21 +64,16 @@ export default function StoryPreview() {
           </div>
         ) : (
           <div className="mt-10">
-            {timeline.length > 0 ? (
-              timeline.slice(0, 4).map((entry, i) => (
-                <TimelineItem
-                  key={entry._id}
-                  year={entry.year}
-                  title={entry.title}
-                  description={entry.description}
-                  isLast={i === Math.min(timeline.length, 4) - 1}
-                />
-              ))
-            ) : (
-              <div className="rounded-2xl border border-[var(--brown)]/8 bg-white p-8 text-center text-sm text-[var(--muted)]">
-                Timeline coming soon.
-              </div>
-            )}
+            {items.map((entry, i) => (
+              <TimelineItem
+                key={entry._id}
+                year={entry.year}
+                title={entry.title}
+                description={entry.description}
+                isLast={i === items.length - 1}
+                images={entry.images}
+              />
+            ))}
           </div>
         )}
       </div>

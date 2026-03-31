@@ -34,13 +34,13 @@ export default function Achievements() {
       subtitle="Key achievements and milestones along the way."
     >
       {loading ? (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="skeleton h-36 w-full rounded-2xl" />
+            <div key={i} className="skeleton h-28 w-full rounded-2xl" />
           ))}
         </div>
       ) : achievements.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-4">
           {achievements.map((a) => (
             <AchievementCard key={a._id} icon={a.icon} title={a.title} description={a.description} year={a.year} images={a.images} />
           ))}

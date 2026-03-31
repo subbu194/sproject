@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import apiClient from '../../api/client';
 import LogEntry from '../../components/LogEntry';
+import { DEMO_LOGS, LOG_IMAGES } from '../../constants/placeholders';
 
 interface LogItem {
   _id: string;
@@ -9,6 +10,7 @@ interface LogItem {
   title: string;
   body: string;
   tags?: string[];
+  images?: string[];
 }
 
 export default function DailyLogPreview() {
@@ -26,23 +28,32 @@ export default function DailyLogPreview() {
       .finally(() => setLoading(false));
   }, []);
 
+  const items = logs.length > 0
+    ? logs.slice(0, 3).map((log, i) => ({
+        ...log,
+        images: log.images && log.images.length > 0 ? log.images : [LOG_IMAGES[i % LOG_IMAGES.length]],
+      }))
+    : DEMO_LOGS;
+
   return (
-    <section id="daily-log" className="scroll-mt-24 bg-[var(--cream)] py-16 lg:py-20">
+    <section id="daily-log" className="scroll-mt-24 bg-[var(--warm-white)] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+              <span className="inline-block h-px w-6 bg-[var(--gold)]" />
               Daily Log
             </div>
-            <h2 className="mt-2 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
+            <h2 className="mt-3 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--brown)] sm:text-4xl">
               What's Happening
             </h2>
           </div>
           <NavLink
             to="/page/daily-log"
-            className="text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
+            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--gold)] transition hover:text-[var(--gold-light)]"
           >
-            View All →
+            View All
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </NavLink>
         </div>
 
@@ -52,9 +63,9 @@ export default function DailyLogPreview() {
               <div key={i} className="skeleton h-28 w-full rounded-2xl" />
             ))}
           </div>
-        ) : logs.length > 0 ? (
+        ) : (
           <div className="mt-8 space-y-4">
-            {logs.slice(0, 3).map((log) => (
+            {items.map((log) => (
               <LogEntry
                 key={log._id}
                 date={new Date(log.date).toLocaleDateString('en-US', {
@@ -66,12 +77,10 @@ export default function DailyLogPreview() {
                 title={log.title}
                 body={log.body}
                 tags={log.tags}
+                images={log.images}
+                readMoreLink="/page/daily-log"
               />
             ))}
-          </div>
-        ) : (
-          <div className="mt-8 rounded-2xl border border-[var(--brown)]/8 bg-white p-10 text-center text-sm text-[var(--muted)]">
-            No log entries yet.
           </div>
         )}
       </div>

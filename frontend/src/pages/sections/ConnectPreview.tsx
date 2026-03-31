@@ -68,30 +68,23 @@ export default function ConnectPreview() {
   ].filter((s) => s.url);
 
   return (
-    <section id="connect" className="scroll-mt-24 bg-[var(--brown)] py-16 lg:py-20">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+    <section id="connect" className="scroll-mt-24 bg-[var(--brown)] py-20 lg:py-28 relative overflow-hidden">
+      {/* Subtle background decoration */}
+      <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-[var(--gold)]/5 blur-3xl" />
+      <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-[var(--gold)]/3 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-6">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+          <span className="inline-block h-px w-6 bg-[var(--gold)]" />
           Connect
         </div>
-        <h2 className="mt-2 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--cream)] sm:text-4xl">
+        <h2 className="mt-3 font-['Playfair_Display'] text-3xl font-bold tracking-tight text-[var(--cream)] sm:text-4xl">
           Let's Work Together{' '}
-
-          <span className="mx-2 text-2xl font-extrabold text-[var(--accent)] sm:text-4xl">
-            +
-          </span>
-
+          <span className="text-[var(--gold)]">+</span>
           {' '}Create Together{' '}
-
-          <span className="mx-2 text-2xl font-extrabold text-[var(--accent)] sm:text-4xl">
-            +
-          </span>
-
+          <span className="text-[var(--gold)]">+</span>
           {' '}Grow Together{' '}
-
-          <span className="mx-2 text-2xl font-extrabold text-[var(--accent)] sm:text-4xl">
-            =
-          </span>
-
+          <span className="text-[var(--gold)]">=</span>
           {' '}SUCCESS
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--cream)]/70">
@@ -110,7 +103,7 @@ export default function ConnectPreview() {
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2.5 rounded-xl border border-[var(--cream)]/15 px-5 py-3 text-sm font-medium text-[var(--cream)] transition-all duration-200 ${s.hoverClass}`}
+                    className={`inline-flex items-center gap-2.5 rounded-xl border border-[var(--cream)]/15 px-5 py-3 text-sm font-medium text-[var(--cream)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${s.hoverClass}`}
                   >
                     {s.icon}
                     {s.label}
