@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Story from './pages/Story';
 import DailyLog from './pages/DailyLog';
+import LogDetail from './pages/LogDetail';
 import Thoughts from './pages/Thoughts';
 import Press from './pages/Press';
 import Achievements from './pages/Achievements';
@@ -19,6 +20,7 @@ export default function AppRouter() {
       <Route path="/" element={<Home />} />
       <Route path="/page/story" element={<Story />} />
       <Route path="/page/daily-log" element={<DailyLog />} />
+      <Route path="/page/daily-log/:id" element={<LogDetail />} />
       <Route path="/page/thoughts" element={<Thoughts />} />
       <Route path="/page/press" element={<Press />} />
       <Route path="/page/achievements" element={<Achievements />} />

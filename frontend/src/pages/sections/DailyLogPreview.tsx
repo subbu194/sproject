@@ -68,6 +68,7 @@ export default function DailyLogPreview() {
             {items.map((log) => (
               <LogEntry
                 key={log._id}
+                id={log._id}
                 date={new Date(log.date).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'short',
@@ -78,7 +79,6 @@ export default function DailyLogPreview() {
                 body={log.body}
                 tags={log.tags}
                 images={log.images}
-                readMoreLink="/page/daily-log"
               />
             ))}
           </div>

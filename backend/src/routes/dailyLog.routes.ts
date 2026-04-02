@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getPublishedLogs,
+  getLogById,
   getTags,
   getAllLogs,
   createLog,
@@ -15,6 +16,7 @@ const router = Router();
 router.get('/', getPublishedLogs);
 router.get('/tags', getTags);
 router.get('/all', verifyAdmin, getAllLogs);
+router.get('/:id', getLogById);
 router.post('/', verifyAdmin, createLog);
 router.put('/:id', verifyAdmin, updateLog);
 router.patch('/:id/publish', verifyAdmin, togglePublish);

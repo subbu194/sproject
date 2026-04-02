@@ -30,6 +30,19 @@ export async function getPublishedLogs(req: Request, res: Response, next: NextFu
   }
 }
 
+export async function getLogById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const entry = await LogEntry.findOne({ _id: req.params.id, published: true });
+    if (!entry) {
+      res.status(404).json({ success: false, error: 'Entry not found' });
+      return;
+    }
+    res.json({ success: true, data: entry });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getTags(req: Request, res: Response, next: NextFunction) {
   try {
     const tags = await LogEntry.distinct('tags', { published: true });

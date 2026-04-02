@@ -1,13 +1,19 @@
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 interface CalendarWidgetProps {
   entryDates: string[]; // ISO date strings
+  onDateSelect?: (date: Date) => void;
 }
 
-export default function CalendarWidget({ entryDates }: CalendarWidgetProps) {
+export default function CalendarWidget({ entryDates, onDateSelect }: CalendarWidgetProps) {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
 
-  const monthName = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthName = viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const dayHeaders = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   const firstDay = new Date(year, month, 1);
@@ -33,22 +39,50 @@ export default function CalendarWidget({ entryDates }: CalendarWidgetProps) {
     weeks.push(currentWeek);
   }
 
-  const entryDays = new Set(
-    entryDates.map((d) => {
-      const date = new Date(d);
-      if (date.getFullYear() === year && date.getMonth() === month) {
-        return date.getDate();
-      }
-      return -1;
-    }).filter((d) => d > 0)
-  );
+  // Map entry dates to day numbers for current month view
+  const entryDaysMap = new Map<number, string>();
+  entryDates.forEach((d) => {
+    const date = new Date(d);
+    if (date.getFullYear() === year && date.getMonth() === month) {
+      entryDaysMap.set(date.getDate(), d);
+    }
+  });
 
   const todayDay = today.getDate();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+  const goToPrevMonth = () => {
+    setViewDate(new Date(year, month - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setViewDate(new Date(year, month + 1, 1));
+  };
+
+  const handleDayClick = (day: number) => {
+    if (entryDaysMap.has(day) && onDateSelect) {
+      onDateSelect(new Date(year, month, day));
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-[var(--gold)]/15 bg-white p-5 shadow-sm">
-      <div className="text-center text-sm font-bold text-[var(--brown)]">{monthName}</div>
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+      <div className="flex items-center justify-between mb-3">
+        <button 
+          onClick={goToPrevMonth}
+          className="p-1 rounded-lg text-[var(--muted)] hover:bg-[var(--warm-white)] hover:text-[var(--brown)] transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <div className="text-sm font-bold text-[var(--brown)]">{monthName}</div>
+        <button 
+          onClick={goToNextMonth}
+          className="p-1 rounded-lg text-[var(--muted)] hover:bg-[var(--warm-white)] hover:text-[var(--brown)] transition-colors"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
         {dayHeaders.map((d, i) => (
           <div key={i}>{d}</div>
         ))}
@@ -57,23 +91,30 @@ export default function CalendarWidget({ entryDates }: CalendarWidgetProps) {
         {weeks.flat().map((day, i) => {
           if (day === null) return <div key={i} />;
 
-          const isToday = day === todayDay;
-          const hasEntry = entryDays.has(day);
+          const isToday = isCurrentMonth && day === todayDay;
+          const hasEntry = entryDaysMap.has(day);
 
           return (
-            <div
+            <button
               key={i}
+              onClick={() => handleDayClick(day)}
+              disabled={!hasEntry}
               className={`flex h-8 w-full items-center justify-center rounded-lg text-xs font-medium transition
                 ${isToday ? 'border-2 border-[var(--gold)] font-bold text-[var(--gold)]' : ''}
-                ${hasEntry && !isToday ? 'bg-[var(--gold)]/15 font-semibold text-[var(--gold)]' : ''}
-                ${!isToday && !hasEntry ? 'text-[var(--muted)]' : ''}
+                ${hasEntry && !isToday ? 'bg-[var(--gold)]/15 font-semibold text-[var(--gold)] cursor-pointer hover:bg-[var(--gold)]/25' : ''}
+                ${!isToday && !hasEntry ? 'text-[var(--muted)] cursor-default' : ''}
               `}
             >
               {day}
-            </div>
+            </button>
           );
         })}
       </div>
+      {entryDaysMap.size > 0 && (
+        <div className="mt-3 pt-3 border-t border-[var(--brown)]/5 text-center text-xs text-[var(--muted)]">
+          {entryDaysMap.size} {entryDaysMap.size === 1 ? 'entry' : 'entries'} this month
+        </div>
+      )}
     </div>
   );
 }
