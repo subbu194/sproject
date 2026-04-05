@@ -8,6 +8,22 @@ import {
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
   X, ImagePlus, Loader2, Search
 } from 'lucide-react';
+import OptimizedImage from '../../components/OptimizedImage';
+
+const API_ROOT = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:80'}/api/v1`;
+
+function padBlurUrls(images: string[] | undefined, blurs: string[] | undefined): string[] {
+  const len = images?.length ?? 0;
+  const b = [...(blurs || [])];
+  while (b.length < len) b.push('');
+  if (b.length > len) return b.slice(0, len);
+  return b;
+}
+
+function galleryLooksFullyOptimized(images: string[]): boolean {
+  if (images.length === 0) return false;
+  return images.every((u) => u.includes('/optimized/') && u.endsWith('/main.webp'));
+}
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -24,10 +40,10 @@ function useDebounce<T>(value: T, delay: number): T {
 
 /* ─── Types ─── */
 interface TimelineEntry { _id: string; year: string; title: string; description: string; }
-interface LogItem { _id: string; date: string; title: string; body: string; tags: string[]; published: boolean; images: string[]; }
-interface Thought { _id: string; topic: string; title: string; summary: string; published: boolean; images: string[]; }
-interface PressItem { _id: string; outlet: string; title: string; year: string; url: string; images: string[]; }
-interface Achievement { _id: string; icon: string; title: string; description: string; year: string; images: string[]; }
+interface LogItem { _id: string; date: string; title: string; body: string; tags: string[]; published: boolean; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
+interface Thought { _id: string; topic: string; title: string; summary: string; published: boolean; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
+interface PressItem { _id: string; outlet: string; title: string; year: string; url: string; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
+interface Achievement { _id: string; icon: string; title: string; description: string; year: string; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
 interface SocialLinks { whatsapp: string; instagram: string; linkedin: string; twitter: string; facebook: string; email: string; }
 interface ContactEntry { _id: string; name: string; email: string; message: string; read: boolean; submittedAt: string; }
 
@@ -99,26 +115,46 @@ function FormTextarea({ label, value, onChange, rows = 3, placeholder = '' }: { 
   );
 }
 
-function ImageUploader({ images, onChange, folder }: { images: string[]; onChange: (imgs: string[]) => void; folder: string }) {
+function ImageUploader({
+  images,
+  imageBlurUrls,
+  onChange,
+  folder: _folder,
+}: {
+  images: string[];
+  imageBlurUrls?: string[];
+  onChange: (imgs: string[], blurs: string[]) => void;
+  folder: string;
+}) {
   const [uploading, setUploading] = useState(false);
+  const blurs = imageBlurUrls ?? [];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     setUploading(true);
     const newImages = [...images];
+    const newBlurs = padBlurUrls(images, blurs);
+
     try {
+      const token = localStorage.getItem('adminToken');
       for (const file of Array.from(files)) {
-        const res = await apiClient.post('/upload/generate-url', { 
-            fileName: file.name, fileType: file.type, folder 
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch(`${API_ROOT}/upload/optimized`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: fd,
         });
-        const { uploadUrl, publicUrl } = res.data.data;
-        
-        await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-        newImages.push(publicUrl);
+        const json = (await res.json()) as { success?: boolean; error?: string; data?: { publicUrl: string; blurUrl: string } };
+        if (!res.ok || !json.success || !json.data) {
+          throw new Error(json.error || 'Upload failed');
+        }
+        newImages.push(json.data.publicUrl);
+        newBlurs.push(json.data.blurUrl);
       }
-      onChange(newImages);
+      onChange(newImages, newBlurs);
     } catch {
       alert('Failed to upload one or more images. Check server connection.');
     } finally {
@@ -128,7 +164,10 @@ function ImageUploader({ images, onChange, folder }: { images: string[]; onChang
   };
 
   const removeImage = (index: number) => {
-    onChange(images.filter((_, i) => i !== index));
+    onChange(
+      images.filter((_, i) => i !== index),
+      blurs.filter((_, i) => i !== index)
+    );
   };
 
   return (
@@ -137,7 +176,14 @@ function ImageUploader({ images, onChange, folder }: { images: string[]; onChang
       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         {images.map((img, i) => (
           <div key={i} className="group relative aspect-video overflow-hidden rounded-2xl border-2 border-[var(--brown)]/10 bg-[var(--warm-white)]">
-             <img src={img} alt="" className="h-full w-full object-cover" />
+             <OptimizedImage
+               src={img}
+               blurSrc={blurs[i]}
+               alt=""
+               fit="cover"
+               loading="lazy"
+               imgClassName="h-full w-full"
+             />
              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button type="button" onClick={() => removeImage(i)} className="rounded-full bg-red-500 p-2 text-white shadow-lg hover:bg-red-600 transition hover:scale-110 active:scale-95"><Trash2 className="h-4 w-4" /></button>
              </div>
@@ -406,7 +452,14 @@ function DailyLogManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<LogItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ date: '', title: '', body: '', tags: '', images: [] as string[] });
+  const [form, setForm] = useState({
+    date: '',
+    title: '',
+    body: '',
+    tags: '',
+    images: [] as string[],
+    imageBlurUrls: [] as string[],
+  });
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/log/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
@@ -414,17 +467,28 @@ function DailyLogManager({ searchQuery }: { searchQuery: string }) {
   const openForm = (item?: LogItem) => {
     if (item) {
       setEditingId(item._id);
-      setForm({ date: item.date ? new Date(item.date).toISOString().split('T')[0] : '', title: item.title, body: item.body, tags: item.tags?.join(', ') || '', images: item.images || [] });
+      setForm({
+        date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+        title: item.title,
+        body: item.body,
+        tags: item.tags?.join(', ') || '',
+        images: item.images || [],
+        imageBlurUrls: padBlurUrls(item.images, item.imageBlurUrls),
+      });
     } else {
       setEditingId(null);
-      setForm({ date: '', title: '', body: '', tags: '', images: [] });
+      setForm({ date: '', title: '', body: '', tags: '', images: [], imageBlurUrls: [] });
     }
     setModalOpen(true);
   };
 
   const save = async () => {
     if (!form.title || !form.body) return;
-    const payload = { ...form, tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean) };
+    const payload = {
+      ...form,
+      tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      isOptimized: galleryLooksFullyOptimized(form.images),
+    };
     try {
       if (editingId) {
         const r = await apiClient.put(`/log/${editingId}`, payload);
@@ -479,7 +543,12 @@ function DailyLogManager({ searchQuery }: { searchQuery: string }) {
           <FormTextarea label="Log Content (Markdown supported)" value={form.body} onChange={(v) => setForm({ ...form, body: v })} rows={6} placeholder="Write your log completely..." />
           <FormInput label="Organizational Tags" value={form.tags} onChange={(v) => setForm({ ...form, tags: v })} placeholder="Strategy, Engineering, Marketing (comma split)" />
           
-          <ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} folder="logs" />
+          <ImageUploader
+            images={form.images}
+            imageBlurUrls={form.imageBlurUrls}
+            onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
+            folder="logs"
+          />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Abort</Btn>
@@ -495,7 +564,13 @@ function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Thought[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ topic: '', title: '', summary: '', images: [] as string[] });
+  const [form, setForm] = useState({
+    topic: '',
+    title: '',
+    summary: '',
+    images: [] as string[],
+    imageBlurUrls: [] as string[],
+  });
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/thoughts/all', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
@@ -503,22 +578,29 @@ function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
   const openForm = (item?: Thought) => {
     if (item) {
       setEditingId(item._id);
-      setForm({ topic: item.topic, title: item.title, summary: item.summary, images: item.images || [] });
+      setForm({
+        topic: item.topic,
+        title: item.title,
+        summary: item.summary,
+        images: item.images || [],
+        imageBlurUrls: padBlurUrls(item.images, item.imageBlurUrls),
+      });
     } else {
       setEditingId(null);
-      setForm({ topic: '', title: '', summary: '', images: [] });
+      setForm({ topic: '', title: '', summary: '', images: [], imageBlurUrls: [] });
     }
     setModalOpen(true);
   };
 
   const save = async () => {
     if (!form.topic || !form.title || !form.summary) return;
+    const payload = { ...form, isOptimized: galleryLooksFullyOptimized(form.images) };
     try {
       if (editingId) {
-        const r = await apiClient.put(`/thoughts/${editingId}`, form);
+        const r = await apiClient.put(`/thoughts/${editingId}`, payload);
         setItems(items.map(i => i._id === editingId ? extractData(r) : i));
       } else {
-        const r = await apiClient.post('/thoughts', { ...form, published: true });
+        const r = await apiClient.post('/thoughts', { ...payload, published: true });
         setItems([extractData(r), ...items]);
       }
       setModalOpen(false);
@@ -564,7 +646,12 @@ function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
           </div>
           <FormTextarea label="Core Synthesis" value={form.summary} onChange={(v) => setForm({ ...form, summary: v })} rows={5} placeholder="Distill the thesis here..." />
           
-          <ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} folder="thoughts" />
+          <ImageUploader
+            images={form.images}
+            imageBlurUrls={form.imageBlurUrls}
+            onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
+            folder="thoughts"
+          />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Abort Protocol</Btn>
@@ -580,7 +667,14 @@ function PressManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<PressItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ outlet: '', title: '', year: '', url: '', images: [] as string[] });
+  const [form, setForm] = useState({
+    outlet: '',
+    title: '',
+    year: '',
+    url: '',
+    images: [] as string[],
+    imageBlurUrls: [] as string[],
+  });
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/press', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
@@ -588,22 +682,30 @@ function PressManager({ searchQuery }: { searchQuery: string }) {
   const openForm = (item?: PressItem) => {
     if (item) {
       setEditingId(item._id);
-      setForm({ outlet: item.outlet, title: item.title, year: item.year, url: item.url, images: item.images || [] });
+      setForm({
+        outlet: item.outlet,
+        title: item.title,
+        year: item.year,
+        url: item.url,
+        images: item.images || [],
+        imageBlurUrls: padBlurUrls(item.images, item.imageBlurUrls),
+      });
     } else {
       setEditingId(null);
-      setForm({ outlet: '', title: '', year: '', url: '', images: [] });
+      setForm({ outlet: '', title: '', year: '', url: '', images: [], imageBlurUrls: [] });
     }
     setModalOpen(true);
   };
 
   const save = async () => {
     if (!form.title || !form.outlet) return;
+    const payload = { ...form, isOptimized: galleryLooksFullyOptimized(form.images) };
     try {
       if (editingId) {
-        const r = await apiClient.put(`/press/${editingId}`, form);
+        const r = await apiClient.put(`/press/${editingId}`, payload);
         setItems(items.map(i => i._id === editingId ? extractData(r) : i));
       } else {
-        const r = await apiClient.post('/press', form);
+        const r = await apiClient.post('/press', payload);
         setItems([extractData(r), ...items]);
       }
       setModalOpen(false);
@@ -646,7 +748,12 @@ function PressManager({ searchQuery }: { searchQuery: string }) {
             </div>
           </div>
 
-          <ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} folder="press" />
+          <ImageUploader
+            images={form.images}
+            imageBlurUrls={form.imageBlurUrls}
+            onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
+            folder="press"
+          />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Halt Function</Btn>
@@ -662,7 +769,14 @@ function AchievementsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Achievement[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ icon: '', title: '', description: '', year: '', images: [] as string[] });
+  const [form, setForm] = useState({
+    icon: '',
+    title: '',
+    description: '',
+    year: '',
+    images: [] as string[],
+    imageBlurUrls: [] as string[],
+  });
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/achievements', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
@@ -670,22 +784,30 @@ function AchievementsManager({ searchQuery }: { searchQuery: string }) {
   const openForm = (item?: Achievement) => {
     if (item) {
       setEditingId(item._id);
-      setForm({ icon: item.icon, title: item.title, description: item.description, year: item.year, images: item.images || [] });
+      setForm({
+        icon: item.icon,
+        title: item.title,
+        description: item.description,
+        year: item.year,
+        images: item.images || [],
+        imageBlurUrls: padBlurUrls(item.images, item.imageBlurUrls),
+      });
     } else {
       setEditingId(null);
-      setForm({ icon: '', title: '', description: '', year: '', images: [] });
+      setForm({ icon: '', title: '', description: '', year: '', images: [], imageBlurUrls: [] });
     }
     setModalOpen(true);
   };
 
   const save = async () => {
     if (!form.title || !form.description || !form.year) return;
+    const payload = { ...form, isOptimized: galleryLooksFullyOptimized(form.images) };
     try {
       if (editingId) {
-        const r = await apiClient.put(`/achievements/${editingId}`, form);
+        const r = await apiClient.put(`/achievements/${editingId}`, payload);
         setItems(items.map(i => i._id === editingId ? extractData(r) : i));
       } else {
-        const r = await apiClient.post('/achievements', form);
+        const r = await apiClient.post('/achievements', payload);
         setItems([extractData(r), ...items]);
       }
       setModalOpen(false);
@@ -729,7 +851,12 @@ function AchievementsManager({ searchQuery }: { searchQuery: string }) {
           </div>
           <FormTextarea label="Granular Details" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={4} />
 
-          <ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} folder="achievements" />
+          <ImageUploader
+            images={form.images}
+            imageBlurUrls={form.imageBlurUrls}
+            onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
+            folder="achievements"
+          />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Disengage Setup</Btn>

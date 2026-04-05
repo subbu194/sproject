@@ -11,6 +11,7 @@ interface LogItem {
   body: string;
   tags?: string[];
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function DailyLogPreview() {
@@ -28,12 +29,13 @@ export default function DailyLogPreview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = logs.length > 0
-    ? logs.slice(0, 3).map((log, i) => ({
-        ...log,
-        images: log.images && log.images.length > 0 ? log.images : [LOG_IMAGES[i % LOG_IMAGES.length]],
-      }))
-    : DEMO_LOGS;
+  const items: LogItem[] =
+    logs.length > 0
+      ? logs.slice(0, 3).map((log, i) => ({
+          ...log,
+          images: log.images && log.images.length > 0 ? log.images : [LOG_IMAGES[i % LOG_IMAGES.length]],
+        }))
+      : (DEMO_LOGS as LogItem[]);
 
   return (
     <section id="daily-log" className="scroll-mt-24 bg-[var(--warm-white)] py-20 lg:py-28">
@@ -79,6 +81,7 @@ export default function DailyLogPreview() {
                 body={log.body}
                 tags={log.tags}
                 images={log.images}
+                imageBlurUrls={log.imageBlurUrls}
               />
             ))}
           </div>

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import OptimizedImage from './OptimizedImage';
 
 interface AchievementCardProps {
   icon?: string;
@@ -6,10 +7,19 @@ interface AchievementCardProps {
   description: string;
   year: string;
   images?: string[];
+  imageBlurUrls?: string[];
   readMoreLink?: string;
 }
 
-export default function AchievementCard({ icon, title, description, year, images, readMoreLink }: AchievementCardProps) {
+export default function AchievementCard({
+  icon,
+  title,
+  description,
+  year,
+  images,
+  imageBlurUrls,
+  readMoreLink,
+}: AchievementCardProps) {
   const isLong = description.length > 200;
   const shouldTruncate = isLong && !!readMoreLink;
 
@@ -21,7 +31,14 @@ export default function AchievementCard({ icon, title, description, year, images
       <div className="pl-3">
         {images && images.length > 0 && (
           <div className="float-left mr-5 mb-3 w-96 h-64 overflow-hidden rounded-xl border border-[var(--brown)]/8">
-            <img src={images[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" loading="lazy" />
+            <OptimizedImage
+              src={images[0]}
+              blurSrc={imageBlurUrls?.[0]}
+              alt=""
+              fit="cover"
+              loading="lazy"
+              imgClassName="h-full w-full transition-transform duration-300 hover:scale-105"
+            />
           </div>
         )}
         <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)] flex items-center gap-2">

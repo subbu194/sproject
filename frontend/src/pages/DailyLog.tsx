@@ -13,6 +13,7 @@ interface LogItem {
   body: string;
   tags?: string[];
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function DailyLog() {
@@ -144,6 +145,7 @@ export default function DailyLog() {
                     body={log.body}
                     tags={log.tags}
                     images={log.images}
+                    imageBlurUrls={log.imageBlurUrls}
                   />
                 </div>
               ))

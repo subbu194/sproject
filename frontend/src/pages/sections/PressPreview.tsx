@@ -12,6 +12,7 @@ interface PressItem {
   link?: string;
   url?: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function PressPreview() {
@@ -75,6 +76,7 @@ export default function PressPreview() {
                 year={p.year}
                 link={p.link}
                 images={p.images}
+                imageBlurUrls={p.imageBlurUrls}
               />
             ))}
           </div>

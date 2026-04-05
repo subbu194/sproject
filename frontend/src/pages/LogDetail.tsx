@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import apiClient from '../api/client';
 import SectionPageShell from '../components/SectionPageShell';
+import OptimizedImage from '../components/OptimizedImage';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface LogItem {
@@ -11,6 +12,7 @@ interface LogItem {
   body: string;
   tags?: string[];
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 function formatBody(text: string): React.ReactNode[] {
@@ -82,7 +84,16 @@ function formatBody(text: string): React.ReactNode[] {
   return elements;
 }
 
-function ImageCarousel({ images }: { images: string[] }) {
+const detailImg =
+  'w-full h-auto max-h-[280px] sm:max-h-[320px] lg:max-h-[380px]';
+
+function ImageCarousel({
+  images,
+  imageBlurUrls,
+}: {
+  images: string[];
+  imageBlurUrls?: string[];
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -115,10 +126,14 @@ function ImageCarousel({ images }: { images: string[] }) {
         onClick={openLightbox}
       >
         <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b from-[var(--warm-white)] to-[var(--cream)]/50">
-          <img 
-            src={images[0]} 
+          <OptimizedImage
+            src={images[0]}
+            blurSrc={imageBlurUrls?.[0]}
             alt="Log entry image"
-            className="w-full h-auto max-h-[280px] sm:max-h-[320px] lg:max-h-[380px] object-contain transition-transform duration-500 group-hover:scale-[1.02]" 
+            fit="contain"
+            loading="eager"
+            fetchPriority="high"
+            imgClassName={`${detailImg} transition-transform duration-500 group-hover:scale-[1.02]`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
@@ -126,7 +141,14 @@ function ImageCarousel({ images }: { images: string[] }) {
           🔍 View full size
         </div>
         {lightboxOpen && (
-          <Lightbox images={images} currentIndex={0} onClose={closeLightbox} onNext={goNext} onPrev={goPrev} />
+          <Lightbox
+            images={images}
+            imageBlurUrls={imageBlurUrls}
+            currentIndex={0}
+            onClose={closeLightbox}
+            onNext={goNext}
+            onPrev={goPrev}
+          />
         )}
       </div>
     );
@@ -146,10 +168,15 @@ function ImageCarousel({ images }: { images: string[] }) {
           className="relative w-full cursor-pointer group"
           onClick={openLightbox}
         >
-          <img 
-            src={images[currentIndex]} 
+          <OptimizedImage
+            key={currentIndex}
+            src={images[currentIndex]}
+            blurSrc={imageBlurUrls?.[currentIndex]}
             alt={`Image ${currentIndex + 1} of ${images.length}`}
-            className="w-full h-auto max-h-[280px] sm:max-h-[320px] lg:max-h-[380px] object-contain transition-all duration-500 ease-out" 
+            fit="contain"
+            loading="eager"
+            fetchPriority="high"
+            imgClassName={`${detailImg} transition-all duration-500 ease-out`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
@@ -217,10 +244,13 @@ function ImageCarousel({ images }: { images: string[] }) {
                   : 'w-20 h-14 sm:w-24 sm:h-16 lg:w-28 lg:h-20 opacity-50 hover:opacity-90 hover:scale-102'
               }`}
             >
-              <img 
-                src={img} 
+              <OptimizedImage
+                src={img}
+                blurSrc={imageBlurUrls?.[index]}
                 alt={`Thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
+                fit="cover"
+                loading="lazy"
+                imgClassName="h-full w-full"
               />
             </button>
           ))}
@@ -229,24 +259,33 @@ function ImageCarousel({ images }: { images: string[] }) {
 
       {/* Lightbox */}
       {lightboxOpen && (
-        <Lightbox images={images} currentIndex={currentIndex} onClose={closeLightbox} onNext={goNext} onPrev={goPrev} />
+        <Lightbox
+          images={images}
+          imageBlurUrls={imageBlurUrls}
+          currentIndex={currentIndex}
+          onClose={closeLightbox}
+          onNext={goNext}
+          onPrev={goPrev}
+        />
       )}
     </div>
   );
 }
 
-function Lightbox({ 
-  images, 
-  currentIndex, 
-  onClose, 
-  onNext, 
-  onPrev 
-}: { 
-  images: string[]; 
-  currentIndex: number; 
-  onClose: () => void; 
-  onNext: () => void; 
-  onPrev: () => void; 
+function Lightbox({
+  images,
+  imageBlurUrls,
+  currentIndex,
+  onClose,
+  onNext,
+  onPrev,
+}: {
+  images: string[];
+  imageBlurUrls?: string[];
+  currentIndex: number;
+  onClose: () => void;
+  onNext: () => void;
+  onPrev: () => void;
 }) {
   return (
     <div 
@@ -277,12 +316,18 @@ function Lightbox({
         </>
       )}
       
-      <img 
-        src={images[currentIndex]} 
-        alt="" 
-        className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] max-w-[90vw]">
+        <OptimizedImage
+          key={`lb-${currentIndex}`}
+          src={images[currentIndex]}
+          blurSrc={imageBlurUrls?.[currentIndex]}
+          alt=""
+          fit="contain"
+          loading="eager"
+          fetchPriority="high"
+          imgClassName="max-h-[90vh] max-w-[90vw] rounded-lg"
+        />
+      </div>
       
       {images.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -372,7 +417,7 @@ export default function LogDetail() {
         {log.images && log.images.length > 0 && (
           <div className="w-full mb-8 sm:mb-10">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <ImageCarousel images={log.images} />
+              <ImageCarousel images={log.images} imageBlurUrls={log.imageBlurUrls} />
             </div>
           </div>
         )}

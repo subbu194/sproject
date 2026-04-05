@@ -1,18 +1,29 @@
+import OptimizedImage from './OptimizedImage';
+
 interface PressRowProps {
   outlet: string;
   title: string;
   year: string;
   link?: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
-export default function PressRow({ outlet, title, year, link, images }: PressRowProps) {
+export default function PressRow({ outlet, title, year, link, images, imageBlurUrls }: PressRowProps) {
   const content = (
     <div className="group flex items-center justify-between rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-5 transition-all duration-200 hover:border-[var(--gold)]/40 hover:shadow-md hover:shadow-[var(--gold)]/5">
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {images && images.length > 0 && (
           <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[var(--brown)]/8">
-            <img src={images[0]} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <OptimizedImage
+              src={images[0]}
+              blurSrc={imageBlurUrls?.[0]}
+              alt=""
+              fit="cover"
+              loading="lazy"
+              sizes="56px"
+              imgClassName="h-full w-full"
+            />
           </div>
         )}
         <div className="flex-1 min-w-0">

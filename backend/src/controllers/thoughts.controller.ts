@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Thought from '../models/Thought';
-import { deleteFileFromR2 } from '../utils/fileUpload';
+import { deleteGalleryAndBlurFromR2 } from '../utils/r2ImageDeletion';
 
 const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL || '';
 
@@ -59,13 +59,23 @@ export async function getAllThoughts(req: Request, res: Response, next: NextFunc
 
 export async function createThought(req: Request, res: Response, next: NextFunction) {
   try {
-    const { topic, title, summary, published, order, images } = req.body;
+    const { topic, title, summary, published, order, images, imageBlurUrls, isOptimized } = req.body;
     if (!topic || !title || !summary) {
       res.status(400).json({ success: false, error: 'Topic, title, and summary are required' });
       return;
     }
     const slug = generateSlug(title);
-    const thought = await Thought.create({ topic, title, summary, slug, published, order, images });
+    const thought = await Thought.create({
+      topic,
+      title,
+      summary,
+      slug,
+      published,
+      order,
+      images,
+      imageBlurUrls,
+      isOptimized,
+    });
     res.status(201).json({ success: true, data: thought });
   } catch (err) {
     next(err);
@@ -115,18 +125,7 @@ export async function deleteThought(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    // Delete all associated images from R2
-    if (thought.images && thought.images.length > 0) {
-      for (const imageUrl of thought.images) {
-        if (isR2Url(imageUrl)) {
-          try {
-            await deleteFileFromR2(imageUrl);
-          } catch (err) {
-            console.warn('Failed to delete image from R2:', err);
-          }
-        }
-      }
-    }
+    await deleteGalleryAndBlurFromR2(thought.images, thought.imageBlurUrls, isR2Url);
 
     await Thought.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });

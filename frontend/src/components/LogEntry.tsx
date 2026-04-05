@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import OptimizedImage from './OptimizedImage';
 
 interface LogEntryProps {
   id?: string;
@@ -7,6 +8,8 @@ interface LogEntryProps {
   body: string;
   tags?: string[];
   images?: string[];
+  /** Parallel blur / LQIP URLs (same order as `images`). */
+  imageBlurUrls?: string[];
   readMoreLink?: string;
 }
 
@@ -83,7 +86,16 @@ function formatBody(text: string): React.ReactNode[] {
   return elements;
 }
 
-export default function LogEntry({ id, date, title, body, tags, images, readMoreLink }: LogEntryProps) {
+export default function LogEntry({
+  id,
+  date,
+  title,
+  body,
+  tags,
+  images,
+  imageBlurUrls,
+  readMoreLink,
+}: LogEntryProps) {
   const isLong = body.length > 200;
   const displayBody = isLong ? body.slice(0, 200) + '...' : body;
   
@@ -99,11 +111,14 @@ export default function LogEntry({ id, date, title, body, tags, images, readMore
         {/* Single preview image - reasonable size */}
         {images && images.length > 0 && (
           <div className="float-right ml-4 mb-3 w-48 sm:w-56 overflow-hidden rounded-xl border border-[var(--brown)]/8">
-            <img 
-              src={images[0]} 
-              alt="" 
-              className="w-full h-auto max-h-40 object-cover transition-transform duration-300 group-hover:scale-105" 
-              loading="lazy" 
+            <OptimizedImage
+              src={images[0]}
+              blurSrc={imageBlurUrls?.[0]}
+              alt=""
+              fit="cover"
+              loading="lazy"
+              sizes="(max-width: 640px) 192px, 224px"
+              imgClassName="w-full h-auto max-h-40 transition-transform duration-300 group-hover:scale-105"
             />
             {images.length > 1 && (
               <div className="bg-[var(--warm-white)] px-2 py-1 text-center text-xs font-medium text-[var(--muted)]">

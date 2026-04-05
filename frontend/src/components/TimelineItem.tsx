@@ -1,12 +1,15 @@
+import OptimizedImage from './OptimizedImage';
+
 interface TimelineItemProps {
   year: string;
   title: string;
   description: string;
   isLast?: boolean;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
-export default function TimelineItem({ year, title, description, isLast, images }: TimelineItemProps) {
+export default function TimelineItem({ year, title, description, isLast, images, imageBlurUrls }: TimelineItemProps) {
   return (
     <div className="group grid grid-cols-[40px_1fr] gap-4">
       <div className="relative flex flex-col items-center">
@@ -29,7 +32,14 @@ export default function TimelineItem({ year, title, description, isLast, images 
           <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
             {images.slice(0, 5).map((img, i) => (
               <div key={i} className="h-24 w-32 shrink-0 overflow-hidden rounded-xl border border-[var(--brown)]/8 shadow-sm">
-                <img src={img} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                <OptimizedImage
+                  src={img}
+                  blurSrc={imageBlurUrls?.[i]}
+                  alt=""
+                  fit="cover"
+                  loading="lazy"
+                  imgClassName="h-full w-full transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
             ))}
           </div>

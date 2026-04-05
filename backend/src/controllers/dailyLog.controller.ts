@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import LogEntry from '../models/LogEntry';
-import { deleteFileFromR2 } from '../utils/fileUpload';
+import { deleteGalleryAndBlurFromR2 } from '../utils/r2ImageDeletion';
 
 const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL || '';
 
@@ -75,12 +75,21 @@ export async function getAllLogs(req: Request, res: Response, next: NextFunction
 
 export async function createLog(req: Request, res: Response, next: NextFunction) {
   try {
-    const { date, title, body, tags, published, images } = req.body;
+    const { date, title, body, tags, published, images, imageBlurUrls, isOptimized } = req.body;
     if (!title || !body) {
       res.status(400).json({ success: false, error: 'Title and body are required' });
       return;
     }
-    const entry = await LogEntry.create({ date, title, body, tags, published, images });
+    const entry = await LogEntry.create({
+      date,
+      title,
+      body,
+      tags,
+      published,
+      images,
+      imageBlurUrls,
+      isOptimized,
+    });
     res.status(201).json({ success: true, data: entry });
   } catch (err) {
     next(err);
@@ -126,18 +135,7 @@ export async function deleteLog(req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    // Delete all associated images from R2
-    if (entry.images && entry.images.length > 0) {
-      for (const imageUrl of entry.images) {
-        if (isR2Url(imageUrl)) {
-          try {
-            await deleteFileFromR2(imageUrl);
-          } catch (err) {
-            console.warn('Failed to delete image from R2:', err);
-          }
-        }
-      }
-    }
+    await deleteGalleryAndBlurFromR2(entry.images, entry.imageBlurUrls, isR2Url);
 
     await LogEntry.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });

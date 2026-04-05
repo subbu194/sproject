@@ -7,6 +7,8 @@ export interface IPressItem extends Document {
   url: string;
   order: number;
   images: string[];
+  imageBlurUrls?: string[];
+  isOptimized: boolean;
 }
 
 const PressItemSchema = new Schema<IPressItem>(
@@ -17,6 +19,8 @@ const PressItemSchema = new Schema<IPressItem>(
     url: { type: String, default: '' },
     order: { type: Number, default: 0 },
     images: [{ type: String }],
+    imageBlurUrls: [{ type: String }],
+    isOptimized: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

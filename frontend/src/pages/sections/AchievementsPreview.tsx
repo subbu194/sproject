@@ -11,6 +11,7 @@ interface Achievement {
   description: string;
   year: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function AchievementsPreview() {
@@ -28,12 +29,13 @@ export default function AchievementsPreview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = achievements.length > 0
-    ? achievements.slice(0, 4).map((a, i) => ({
-        ...a,
-        images: a.images && a.images.length > 0 ? a.images : [ACHIEVEMENT_IMAGES[i % ACHIEVEMENT_IMAGES.length]],
-      }))
-    : DEMO_ACHIEVEMENTS;
+  const items: Achievement[] =
+    achievements.length > 0
+      ? achievements.slice(0, 4).map((a, i) => ({
+          ...a,
+          images: a.images && a.images.length > 0 ? a.images : [ACHIEVEMENT_IMAGES[i % ACHIEVEMENT_IMAGES.length]],
+        }))
+      : (DEMO_ACHIEVEMENTS as Achievement[]);
 
   return (
     <section id="achievements" className="scroll-mt-24 bg-[var(--cream)] py-20 lg:py-28">
@@ -73,6 +75,7 @@ export default function AchievementsPreview() {
                 description={a.description}
                 year={a.year}
                 images={a.images}
+                imageBlurUrls={a.imageBlurUrls}
                 readMoreLink="/page/achievements"
               />
             ))}

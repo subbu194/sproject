@@ -10,6 +10,7 @@ interface Achievement {
   description: string;
   year: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function Achievements() {
@@ -42,7 +43,15 @@ export default function Achievements() {
       ) : achievements.length > 0 ? (
         <div className="space-y-4">
           {achievements.map((a) => (
-            <AchievementCard key={a._id} icon={a.icon} title={a.title} description={a.description} year={a.year} images={a.images} />
+            <AchievementCard
+              key={a._id}
+              icon={a.icon}
+              title={a.title}
+              description={a.description}
+              year={a.year}
+              images={a.images}
+              imageBlurUrls={a.imageBlurUrls}
+            />
           ))}
         </div>
       ) : (

@@ -6,6 +6,10 @@ export interface ILogEntry extends Document {
   body: string;
   tags: string[];
   images: string[];
+  /** Parallel to `images` (same length when set); LQIP / blur WebP URLs. */
+  imageBlurUrls?: string[];
+  /** True when all gallery images are optimized WebP under /optimized/…/main.webp (set by migration or admin). */
+  isOptimized: boolean;
   published: boolean;
 }
 
@@ -16,6 +20,8 @@ const LogEntrySchema = new Schema<ILogEntry>(
     body: { type: String, required: true },
     tags: [{ type: String }],
     images: [{ type: String }],
+    imageBlurUrls: [{ type: String }],
+    isOptimized: { type: Boolean, default: false },
     published: { type: Boolean, default: false },
   },
   { timestamps: true }

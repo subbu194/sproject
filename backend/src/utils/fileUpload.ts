@@ -53,6 +53,25 @@ export const generateUploadUrlProfile = async (
     }
 };
 
+export function publicUrlFromStorageKey(key: string): string {
+    const trimmed = key.replace(/^\/+/, '');
+    const base = R2_PUBLIC_URL ? R2_PUBLIC_URL.replace(/\/$/, '') : '';
+    return base ? `${base}/${trimmed}` : `https://${BUCKET_NAME}.r2.dev/${trimmed}`;
+}
+
+export async function uploadBufferToR2(key: string, body: Buffer, contentType: string): Promise<void> {
+    const s3Client = getR2Client();
+    const trimmed = key.replace(/^\/+/, '');
+    await s3Client.send(
+        new PutObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: trimmed,
+            Body: body,
+            ContentType: contentType,
+        })
+    );
+}
+
 // Delete file from R2 storage
 export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
     if (!fileUrl) {

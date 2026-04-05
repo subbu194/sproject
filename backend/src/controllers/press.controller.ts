@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import PressItem from '../models/PressItem';
-import { deleteFileFromR2 } from '../utils/fileUpload';
+import { deleteGalleryAndBlurFromR2 } from '../utils/r2ImageDeletion';
 
 const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL || '';
 
@@ -30,12 +30,21 @@ export async function getPress(req: Request, res: Response, next: NextFunction) 
 
 export async function createPress(req: Request, res: Response, next: NextFunction) {
   try {
-    const { outlet, title, year, url, order, images } = req.body;
+    const { outlet, title, year, url, order, images, imageBlurUrls, isOptimized } = req.body;
     if (!outlet || !title || !year) {
       res.status(400).json({ success: false, error: 'Outlet, title, and year are required' });
       return;
     }
-    const item = await PressItem.create({ outlet, title, year, url, order, images });
+    const item = await PressItem.create({
+      outlet,
+      title,
+      year,
+      url,
+      order,
+      images,
+      imageBlurUrls,
+      isOptimized,
+    });
     res.status(201).json({ success: true, data: item });
   } catch (err) {
     next(err);
@@ -66,18 +75,7 @@ export async function deletePress(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // Delete all associated images from R2
-    if (item.images && item.images.length > 0) {
-      for (const imageUrl of item.images) {
-        if (isR2Url(imageUrl)) {
-          try {
-            await deleteFileFromR2(imageUrl);
-          } catch (err) {
-            console.warn('Failed to delete image from R2:', err);
-          }
-        }
-      }
-    }
+    await deleteGalleryAndBlurFromR2(item.images, item.imageBlurUrls, isR2Url);
 
     await PressItem.findByIdAndDelete(req.params.id);
     res.json({ success: true, data: null });

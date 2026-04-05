@@ -9,6 +9,7 @@ interface TimelineEntry {
   title: string;
   description: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function StoryPreview() {
@@ -70,6 +71,7 @@ export default function StoryPreview() {
                 description={entry.description}
                 isLast={i === items.length - 1}
                 images={entry.images}
+                imageBlurUrls={entry.imageBlurUrls}
               />
             ))}
           </div>

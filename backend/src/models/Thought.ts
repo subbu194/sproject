@@ -8,6 +8,8 @@ export interface IThought extends Document {
   published: boolean;
   order: number;
   images: string[];
+  imageBlurUrls?: string[];
+  isOptimized: boolean;
 }
 
 const ThoughtSchema = new Schema<IThought>(
@@ -19,6 +21,8 @@ const ThoughtSchema = new Schema<IThought>(
     published: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
     images: [{ type: String }],
+    imageBlurUrls: [{ type: String }],
+    isOptimized: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -9,6 +9,7 @@ interface TimelineEntry {
   title: string;
   description: string;
   images?: string[];
+  imageBlurUrls?: string[];
 }
 
 export default function Story() {
@@ -49,6 +50,7 @@ export default function Story() {
                 description={entry.description}
                 isLast={i === timeline.length - 1}
                 images={entry.images}
+                imageBlurUrls={entry.imageBlurUrls}
               />
             ))
           ) : (

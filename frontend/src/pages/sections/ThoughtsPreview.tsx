@@ -10,6 +10,7 @@ interface Thought {
   title: string;
   summary: string;
   images?: string[];
+  imageBlurUrls?: string[];
   createdAt?: string;
 }
 
@@ -80,6 +81,7 @@ export default function ThoughtsPreview() {
                 body={t.summary}
                 tags={[t.topic]}
                 images={t.images}
+                imageBlurUrls={t.imageBlurUrls}
                 readMoreLink="/page/thoughts"
               />
             ))}
