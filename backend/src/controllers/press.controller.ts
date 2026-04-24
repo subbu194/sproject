@@ -28,6 +28,19 @@ export async function getPress(req: Request, res: Response, next: NextFunction) 
   }
 }
 
+export async function getPressById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const item = await PressItem.findById(req.params.id);
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Press item not found' });
+      return;
+    }
+    res.json({ success: true, data: item });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function createPress(req: Request, res: Response, next: NextFunction) {
   try {
     const { outlet, title, year, url, order, images, imageBlurUrls, isOptimized } = req.body;

@@ -24,6 +24,19 @@ export async function getAchievements(req: Request, res: Response, next: NextFun
   }
 }
 
+export async function getAchievementById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const item = await Achievement.findById(req.params.id);
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Achievement not found' });
+      return;
+    }
+    res.json({ success: true, data: item });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function createAchievement(req: Request, res: Response, next: NextFunction) {
   try {
     const { icon, title, description, year, order, images, imageBlurUrls, isOptimized } = req.body;

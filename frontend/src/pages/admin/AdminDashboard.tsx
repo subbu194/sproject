@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../../api/client';
 import { setAdminToken } from '../../api/client';
@@ -6,9 +6,10 @@ import {
   BookOpen, CalendarDays, Lightbulb, Link2, 
   MessageSquare, Newspaper, Trophy, LogOut, 
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
-  X, ImagePlus, Loader2, Search
+  X, ImagePlus, Loader2, Search, Scissors
 } from 'lucide-react';
 import OptimizedImage from '../../components/OptimizedImage';
+import LocalImageCropModal from '../../components/crop/LocalImageCropModal';
 
 const API_ROOT = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:80'}/api/v1`;
 
@@ -115,6 +116,12 @@ function FormTextarea({ label, value, onChange, rows = 3, placeholder = '' }: { 
   );
 }
 
+/** Queue item: a file waiting to be cropped or directly uploaded */
+interface QueuedFile {
+  file: File;
+  previewUrl: string;
+}
+
 function ImageUploader({
   images,
   imageBlurUrls,
@@ -127,40 +134,85 @@ function ImageUploader({
   folder: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [fileQueue, setFileQueue] = useState<QueuedFile[]>([]);
+  const [currentQueueIndex, setCurrentQueueIndex] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const blurs = imageBlurUrls ?? [];
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  /** Upload a single blob (already cropped or original file) */
+  const uploadBlob = async (blob: Blob, filename: string): Promise<{ publicUrl: string; blurUrl: string }> => {
+    const token = localStorage.getItem('adminToken');
+    const fd = new FormData();
+    fd.append('file', blob, filename);
+    const res = await fetch(`${API_ROOT}/upload/optimized`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    });
+    const json = (await res.json()) as { success?: boolean; error?: string; data?: { publicUrl: string; blurUrl: string } };
+    if (!res.ok || !json.success || !json.data) throw new Error(json.error || 'Upload failed');
+    return json.data;
+  };
 
+  /** Called when admin clicks the upload button */
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    // Build queue with preview URLs
+    const queue: QueuedFile[] = files.map((f) => ({
+      file: f,
+      previewUrl: URL.createObjectURL(f),
+    }));
+    setFileQueue(queue);
+    setCurrentQueueIndex(0);
+    setCropModalOpen(true);
+    e.target.value = '';
+  };
+
+  /** After crop/skip for current image, upload and advance queue */
+  const handleCropComplete = async (blob: Blob, _croppedUrl: string) => {
+    const current = fileQueue[currentQueueIndex];
+    await doUploadAndAdvance(blob, current.file.name);
+  };
+
+  const handleSkipCrop = async (file: File) => {
+    await doUploadAndAdvance(file, file.name);
+  };
+
+  const doUploadAndAdvance = async (blobOrFile: Blob | File, name: string) => {
     setUploading(true);
-    const newImages = [...images];
-    const newBlurs = padBlurUrls(images, blurs);
-
     try {
-      const token = localStorage.getItem('adminToken');
-      for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.append('file', file);
-        const res = await fetch(`${API_ROOT}/upload/optimized`, {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: fd,
-        });
-        const json = (await res.json()) as { success?: boolean; error?: string; data?: { publicUrl: string; blurUrl: string } };
-        if (!res.ok || !json.success || !json.data) {
-          throw new Error(json.error || 'Upload failed');
-        }
-        newImages.push(json.data.publicUrl);
-        newBlurs.push(json.data.blurUrl);
-      }
+      const result = await uploadBlob(blobOrFile, name);
+      // We only know after each iteration; build incrementally
+      const newImages = [...images, result.publicUrl];
+      const newBlurs = [...padBlurUrls(images, blurs), result.blurUrl];
       onChange(newImages, newBlurs);
     } catch {
-      alert('Failed to upload one or more images. Check server connection.');
+      alert('Failed to upload image. Check server connection.');
     } finally {
       setUploading(false);
-      e.target.value = '';
     }
+
+    // Advance to next in queue or close modal
+    const nextIndex = currentQueueIndex + 1;
+    if (nextIndex < fileQueue.length) {
+      setCurrentQueueIndex(nextIndex);
+      // keep modal open for next image
+    } else {
+      // Done with all files
+      fileQueue.forEach((q) => URL.revokeObjectURL(q.previewUrl));
+      setFileQueue([]);
+      setCurrentQueueIndex(0);
+      setCropModalOpen(false);
+    }
+  };
+
+  const handleCropModalClose = () => {
+    fileQueue.forEach((q) => URL.revokeObjectURL(q.previewUrl));
+    setFileQueue([]);
+    setCurrentQueueIndex(0);
+    setCropModalOpen(false);
   };
 
   const removeImage = (index: number) => {
@@ -170,37 +222,88 @@ function ImageUploader({
     );
   };
 
+  const currentQueuedFile = fileQueue[currentQueueIndex];
+  const queueLabel = fileQueue.length > 1
+    ? `Image ${currentQueueIndex + 1} of ${fileQueue.length}`
+    : undefined;
+
   return (
     <div className="block group">
-      <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Attached Imagery</span>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Attached Imagery</span>
+        {uploading && (
+          <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--gold)]">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Uploading…
+          </span>
+        )}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         {images.map((img, i) => (
           <div key={i} className="group relative aspect-video overflow-hidden rounded-2xl border-2 border-[var(--brown)]/10 bg-[var(--warm-white)]">
-             <OptimizedImage
-               src={img}
-               blurSrc={blurs[i]}
-               alt=""
-               fit="cover"
-               loading="lazy"
-               imgClassName="h-full w-full"
-             />
-             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button type="button" onClick={() => removeImage(i)} className="rounded-full bg-red-500 p-2 text-white shadow-lg hover:bg-red-600 transition hover:scale-110 active:scale-95"><Trash2 className="h-4 w-4" /></button>
-             </div>
+            <OptimizedImage
+              src={img}
+              blurSrc={blurs[i]}
+              alt=""
+              fit="cover"
+              loading="lazy"
+              imgClassName="h-full w-full"
+            />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => removeImage(i)}
+                className="rounded-full bg-red-500 p-2 text-white shadow-lg hover:bg-red-600 transition hover:scale-110 active:scale-95"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         ))}
-        <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--brown)]/20 bg-[var(--warm-white)]/50 text-[var(--brown)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/5 hover:text-[var(--gold)]">
+
+        {/* Add image button */}
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+          className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--brown)]/20 bg-[var(--warm-white)]/50 text-[var(--brown)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/5 hover:text-[var(--gold)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {uploading ? (
             <Loader2 className="h-8 w-8 animate-spin" />
           ) : (
             <>
-              <ImagePlus className="mb-2 h-8 w-8" />
-              <span className="text-xs font-bold">Upload Media</span>
+              <div className="flex items-center gap-1.5 mb-1">
+                <ImagePlus className="h-7 w-7" />
+                <Scissors className="h-4 w-4 opacity-60" />
+              </div>
+              <span className="text-xs font-bold">Upload & Crop</span>
             </>
           )}
-          <input type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
-        </label>
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileInputChange}
+          disabled={uploading}
+        />
       </div>
+
+      {/* Crop Modal — one file at a time from queue */}
+      {currentQueuedFile && (
+        <LocalImageCropModal
+          isOpen={cropModalOpen}
+          onClose={handleCropModalClose}
+          onCropComplete={handleCropComplete}
+          onSkipCrop={handleSkipCrop}
+          title={queueLabel ? `Crop Image (${queueLabel})` : 'Crop Image'}
+          outputMimeType="image/webp"
+        />
+      )}
     </div>
   );
 }

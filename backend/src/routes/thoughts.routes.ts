@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getPublishedThoughts,
   getAllThoughts,
+  getThoughtById,
   createThought,
   updateThought,
   togglePublishThought,
@@ -13,6 +14,7 @@ const router = Router();
 
 router.get('/', getPublishedThoughts);
 router.get('/all', verifyAdmin, getAllThoughts);
+router.get('/:id', getThoughtById);
 router.post('/', verifyAdmin, createThought);
 router.put('/:id', verifyAdmin, updateThought);
 router.patch('/:id/publish', verifyAdmin, togglePublishThought);

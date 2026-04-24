@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAchievements,
+  getAchievementById,
   createAchievement,
   updateAchievement,
   deleteAchievement,
@@ -11,6 +12,7 @@ import { verifyAdmin } from '../middleware/verifyAdmin';
 const router = Router();
 
 router.get('/', getAchievements);
+router.get('/:id', getAchievementById);
 router.get('/upload-url', verifyAdmin, getUploadUrl);
 router.post('/', verifyAdmin, createAchievement);
 router.put('/:id', verifyAdmin, updateAchievement);

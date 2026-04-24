@@ -57,6 +57,19 @@ export async function getAllThoughts(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function getThoughtById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const thought = await Thought.findById(req.params.id);
+    if (!thought || !thought.published) {
+      res.status(404).json({ success: false, error: 'Thought not found' });
+      return;
+    }
+    res.json({ success: true, data: thought });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function createThought(req: Request, res: Response, next: NextFunction) {
   try {
     const { topic, title, summary, published, order, images, imageBlurUrls, isOptimized } = req.body;
