@@ -21,7 +21,16 @@ export default function StoryPreview() {
       .get('/story/timeline')
       .then((res) => {
         const data = res.data?.data || res.data || [];
-        setTimeline(Array.isArray(data) ? data : []);
+        let parsedData = Array.isArray(data) ? [...data] : [];
+        parsedData.sort((a, b) => {
+          const yearA = a.year.match(/\d{4}/);
+          const yearB = b.year.match(/\d{4}/);
+          const valA = yearA ? parseInt(yearA[0], 10) : 0;
+          const valB = yearB ? parseInt(yearB[0], 10) : 0;
+          if (valA !== valB) return valB - valA;
+          return b.year.localeCompare(a.year);
+        });
+        setTimeline(parsedData);
       })
       .catch(() => setTimeline([]))
       .finally(() => setLoading(false));
