@@ -1,10 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import apiClient from '../api/client';
 import SectionPageShell from '../components/SectionPageShell';
 import LogEntry from '../components/LogEntry';
 import CalendarWidget from '../components/CalendarWidget';
-import TagFilter from '../components/TagFilter';
 
 interface LogItem {
   _id: string;
@@ -17,22 +15,10 @@ interface LogItem {
 }
 
 export default function DailyLog() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [allLogs, setAllLogs] = useState<LogItem[]>([]); // All logs for calendar
   const [loading, setLoading] = useState(true);
-  const [activeTag, setActiveTag] = useState(searchParams.get('tag') || '');
   const logRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-
-  const handleTagSelect = (tag: string) => {
-    setLoading(true);
-    setActiveTag(tag);
-    if (tag) {
-      setSearchParams({ tag });
-    } else {
-      setSearchParams({});
-    }
-  };
 
   const handleDateSelect = (date: Date) => {
     // Find log entry for this date and scroll to it
@@ -54,16 +40,15 @@ export default function DailyLog() {
   };
 
   useEffect(() => {
-    const url = activeTag ? `/log?tag=${encodeURIComponent(activeTag)}` : '/log';
     apiClient
-      .get(url)
+      .get('/log')
       .then((res) => {
         const data = res.data?.data || res.data || [];
         setLogs(Array.isArray(data) ? data : []);
       })
       .catch(() => setLogs([]))
       .finally(() => setLoading(false));
-  }, [activeTag]);
+  }, []);
 
   // Fetch all logs for calendar (without tag filter)
   useEffect(() => {
@@ -74,18 +59,6 @@ export default function DailyLog() {
         setAllLogs(Array.isArray(data) ? data : []);
       })
       .catch(() => setAllLogs([]));
-  }, []);
-
-  const [allTags, setAllTags] = useState<string[]>([]);
-
-  useEffect(() => {
-    apiClient
-      .get('/log/tags')
-      .then((res) => {
-        const data = res.data?.data || res.data || [];
-        setAllTags(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setAllTags([]));
   }, []);
 
   // Use all logs for calendar dates
@@ -114,14 +87,7 @@ export default function DailyLog() {
           {/* Sidebar */}
           <div className="space-y-6">
             <CalendarWidget entryDates={entryDates} onDateSelect={handleDateSelect} />
-            {allTags.length > 0 && (
-              <div>
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                  Filter by Tag
-                </h3>
-                <TagFilter tags={allTags} activeTag={activeTag} onSelect={handleTagSelect} />
-              </div>
-            )}
+
           </div>
 
           {/* Feed */}
@@ -151,7 +117,7 @@ export default function DailyLog() {
               ))
             ) : (
               <div className="rounded-2xl border border-[var(--brown)]/8 bg-[var(--card-bg)] p-10 text-center text-sm text-[var(--muted)]">
-                {activeTag ? `No entries tagged "${activeTag}".` : 'No log entries yet.'}
+                No log entries yet.
               </div>
             )}
           </div>

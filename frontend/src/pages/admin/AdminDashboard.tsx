@@ -116,12 +116,6 @@ function FormTextarea({ label, value, onChange, rows = 3, placeholder = '' }: { 
   );
 }
 
-/** Queue item: a file waiting to be cropped or directly uploaded */
-interface QueuedFile {
-  file: File;
-  previewUrl: string;
-}
-
 function ImageUploader({
   images,
   imageBlurUrls,
@@ -135,13 +129,11 @@ function ImageUploader({
 }) {
   const [uploading, setUploading] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [fileQueue, setFileQueue] = useState<QueuedFile[]>([]);
-  const [currentQueueIndex, setCurrentQueueIndex] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blurs = imageBlurUrls ?? [];
 
-  /** Upload a single blob (already cropped or original file) */
-  const uploadBlob = async (blob: Blob, filename: string): Promise<{ publicUrl: string; blurUrl: string }> => {
+  const uploadBlob = async (blob: Blob | File, filename: string): Promise<{ publicUrl: string; blurUrl: string }> => {
     const token = localStorage.getItem('adminToken');
     const fd = new FormData();
     fd.append('file', blob, filename);
@@ -155,63 +147,36 @@ function ImageUploader({
     return json.data;
   };
 
-  /** Called when admin clicks the upload button */
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    // Build queue with preview URLs
-    const queue: QueuedFile[] = files.map((f) => ({
-      file: f,
-      previewUrl: URL.createObjectURL(f),
-    }));
-    setFileQueue(queue);
-    setCurrentQueueIndex(0);
+    setSelectedFiles(files);
     setCropModalOpen(true);
     e.target.value = '';
   };
 
-  /** After crop/skip for current image, upload and advance queue */
-  const handleCropComplete = async (blob: Blob, _croppedUrl: string) => {
-    const current = fileQueue[currentQueueIndex];
-    await doUploadAndAdvance(blob, current.file.name);
-  };
-
-  const handleSkipCrop = async (file: File) => {
-    await doUploadAndAdvance(file, file.name);
-  };
-
-  const doUploadAndAdvance = async (blobOrFile: Blob | File, name: string) => {
+  const handleCropModalComplete = async (processed: { file: File | Blob; originalName: string }[]) => {
+    setCropModalOpen(false);
+    setSelectedFiles([]);
     setUploading(true);
     try {
-      const result = await uploadBlob(blobOrFile, name);
-      // We only know after each iteration; build incrementally
-      const newImages = [...images, result.publicUrl];
-      const newBlurs = [...padBlurUrls(images, blurs), result.blurUrl];
+      const newImages = [...images];
+      const newBlurs = [...padBlurUrls(images, blurs)];
+      for (const item of processed) {
+        const result = await uploadBlob(item.file, item.originalName);
+        newImages.push(result.publicUrl);
+        newBlurs.push(result.blurUrl);
+      }
       onChange(newImages, newBlurs);
     } catch {
-      alert('Failed to upload image. Check server connection.');
+      alert('Failed to upload image(s). Check server connection.');
     } finally {
       setUploading(false);
-    }
-
-    // Advance to next in queue or close modal
-    const nextIndex = currentQueueIndex + 1;
-    if (nextIndex < fileQueue.length) {
-      setCurrentQueueIndex(nextIndex);
-      // keep modal open for next image
-    } else {
-      // Done with all files
-      fileQueue.forEach((q) => URL.revokeObjectURL(q.previewUrl));
-      setFileQueue([]);
-      setCurrentQueueIndex(0);
-      setCropModalOpen(false);
     }
   };
 
   const handleCropModalClose = () => {
-    fileQueue.forEach((q) => URL.revokeObjectURL(q.previewUrl));
-    setFileQueue([]);
-    setCurrentQueueIndex(0);
+    setSelectedFiles([]);
     setCropModalOpen(false);
   };
 
@@ -221,11 +186,6 @@ function ImageUploader({
       blurs.filter((_, i) => i !== index)
     );
   };
-
-  const currentQueuedFile = fileQueue[currentQueueIndex];
-  const queueLabel = fileQueue.length > 1
-    ? `Image ${currentQueueIndex + 1} of ${fileQueue.length}`
-    : undefined;
 
   return (
     <div className="block group">
@@ -250,15 +210,14 @@ function ImageUploader({
               loading="lazy"
               imgClassName="h-full w-full"
             />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => removeImage(i)}
-                className="rounded-full bg-red-500 p-2 text-white shadow-lg hover:bg-red-600 transition hover:scale-110 active:scale-95"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => removeImage(i)}
+              className="absolute top-2 right-2 rounded-full bg-red-500/90 p-2 text-white shadow-lg hover:bg-red-600 transition hover:scale-110 active:scale-95 z-10"
+              title="Delete Image"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
         ))}
 
@@ -293,15 +252,15 @@ function ImageUploader({
         />
       </div>
 
-      {/* Crop Modal — one file at a time from queue */}
-      {currentQueuedFile && (
+      {/* Crop Modal — processes all files at once */}
+      {selectedFiles.length > 0 && (
         <LocalImageCropModal
           isOpen={cropModalOpen}
           onClose={handleCropModalClose}
-          onCropComplete={handleCropComplete}
-          onSkipCrop={handleSkipCrop}
-          title={queueLabel ? `Crop Image (${queueLabel})` : 'Crop Image'}
+          onComplete={handleCropModalComplete}
+          title={`Crop Images (${selectedFiles.length})`}
           outputMimeType="image/webp"
+          files={selectedFiles}
         />
       )}
     </div>
