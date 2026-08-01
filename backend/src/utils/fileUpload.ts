@@ -113,7 +113,7 @@ export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
 };
 
 // Helper function to determine MIME type based on file extension
-const getMimeType = (extension: string): string => {
+export const getMimeType = (extension: string): string => {
     const mimeTypes: Record<string, string> = {
         'pdf': 'application/pdf',
         'jpg': 'image/jpeg',
@@ -124,6 +124,10 @@ const getMimeType = (extension: string): string => {
         'svg': 'image/svg+xml',
         'bmp': 'image/bmp',
         'tiff': 'image/tiff',
+        'tif': 'image/tiff',
+        'heic': 'image/heic',
+        'heif': 'image/heif',
+        'avif': 'image/avif',
         'mp4': 'video/mp4',
         'mov': 'video/quicktime',
         'm4v': 'video/x-m4v',

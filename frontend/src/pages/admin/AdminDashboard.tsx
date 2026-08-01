@@ -11,8 +11,6 @@ import {
 import OptimizedImage from '../../components/OptimizedImage';
 import LocalImageCropModal from '../../components/crop/LocalImageCropModal';
 
-const API_ROOT = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:80'}/api/v1`;
-
 function padBlurUrls(images: string[] | undefined, blurs: string[] | undefined): string[] {
   const len = images?.length ?? 0;
   const b = [...(blurs || [])];
@@ -134,16 +132,11 @@ function ImageUploader({
   const blurs = imageBlurUrls ?? [];
 
   const uploadBlob = async (blob: Blob | File, filename: string): Promise<{ publicUrl: string; blurUrl: string }> => {
-    const token = localStorage.getItem('adminToken');
     const fd = new FormData();
     fd.append('file', blob, filename);
-    const res = await fetch(`${API_ROOT}/upload/optimized`, {
-      method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: fd,
-    });
-    const json = (await res.json()) as { success?: boolean; error?: string; data?: { publicUrl: string; blurUrl: string } };
-    if (!res.ok || !json.success || !json.data) throw new Error(json.error || 'Upload failed');
+    const res = await apiClient.post('/upload/optimized', fd);
+    const json = res.data as { success?: boolean; error?: string; data?: { publicUrl: string; blurUrl: string } };
+    if (!json.success || !json.data) throw new Error(json.error || 'Upload failed');
     return json.data;
   };
 
@@ -168,8 +161,9 @@ function ImageUploader({
         newBlurs.push(result.blurUrl);
       }
       onChange(newImages, newBlurs);
-    } catch {
-      alert('Failed to upload image(s). Check server connection.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to upload image(s).';
+      alert(`Upload failed: ${message}`);
     } finally {
       setUploading(false);
     }

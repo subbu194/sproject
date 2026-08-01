@@ -26,7 +26,11 @@ export async function uploadOptimizedImage(req: Request, res: Response, next: Ne
       return;
     }
 
-    const { publicUrl, blurUrl } = await processUploadAndStoreInR2(req.file.buffer);
+    const { publicUrl, blurUrl } = await processUploadAndStoreInR2(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
 
     res.status(200).json({
       success: true,

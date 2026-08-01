@@ -106,6 +106,13 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
     }
   };
 
+  const handleUploadOriginals = () => {
+    if (!files) return;
+    const originals = Object.fromEntries(files.map((file, index) => [index, file]));
+    setProcessedFiles(originals);
+    setError(null);
+  };
+
   const resetAndClose = () => {
     setImageSrc(null);
     setError(null);
@@ -116,7 +123,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
     if (!files || !onComplete) return;
     const results = files.map((f, i) => ({
       file: processedFiles[i] || f, // Fallback to original file if somehow bypassed
-      originalName: f.name
+      originalName: f.name,
     }));
     onComplete(results);
     resetAndClose();
@@ -222,8 +229,11 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
                     <div className="text-sm font-bold text-[var(--muted)]">
                       {Object.keys(processedFiles).length} / {files?.length || 0} processed
                     </div>
-                    <div className="flex gap-3 items-center">
+                    <div className="flex flex-wrap gap-3 items-center">
                       <button type="button" onClick={resetAndClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-[var(--muted)] hover:bg-[var(--cream)] transition-all">Cancel</button>
+                      <button type="button" onClick={handleUploadOriginals} disabled={isProcessing} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-[var(--cream)] text-[var(--brown)] border border-[rgba(44,26,14,0.12)] hover:border-[var(--gold)] transition-all">
+                        Upload Originals
+                      </button>
                       <button type="button" onClick={handleSkip} disabled={isProcessing} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold bg-[var(--cream)] text-[var(--brown)] border border-[rgba(44,26,14,0.12)] hover:border-[var(--gold)] transition-all">Use As-Is</button>
                       <button type="button" onClick={handleCrop} disabled={isProcessing} className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all disabled:opacity-50" style={{ background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)' }}>
                         {isProcessing ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Check className="h-4 w-4" />}

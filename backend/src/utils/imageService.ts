@@ -49,26 +49,48 @@ export function optimizedObjectKeys(projectId: string): { mainKey: string; blurK
   return { mainKey: `${base}/main.webp`, blurKey: `${base}/blur.webp` };
 }
 
-export async function uploadOptimizedPairToR2(
-  projectId: string,
-  main: Buffer,
-  blur: Buffer
-): Promise<{ publicUrl: string; blurUrl: string }> {
-  const { mainKey, blurKey } = optimizedObjectKeys(projectId);
-  await uploadBufferToR2(mainKey, main, 'image/webp');
-  await uploadBufferToR2(blurKey, blur, 'image/webp');
+function extensionFromNameOrMime(name: string, mimeType: string): string {
+  const sanitizedName = name.split('?')[0].split('#')[0];
+  const extension = sanitizedName.split('.').pop() || '';
+  if (extension) {
+    return extension.toLowerCase();
+  }
+  if (mimeType) {
+    const parts = mimeType.split('/');
+    return parts[1] || 'bin';
+  }
+  return 'bin';
+}
 
+export async function uploadRawFileToR2(
+  fileName: string,
+  fileBuffer: Buffer,
+  contentType: string
+): Promise<{ publicUrl: string; blurUrl: string }> {
+  const extension = extensionFromNameOrMime(fileName, contentType);
+  const projectId = newOptimizedProjectId();
+  const key = `uploads/raw/${projectId}.${extension}`;
+  await uploadBufferToR2(key, fileBuffer, contentType || 'application/octet-stream');
   return {
-    publicUrl: publicUrlFromStorageKey(mainKey),
-    blurUrl: publicUrlFromStorageKey(blurKey),
+    publicUrl: publicUrlFromStorageKey(key),
+    blurUrl: '',
   };
 }
 
-export async function processUploadAndStoreInR2(fileBuffer: Buffer): Promise<{
+export async function processUploadAndStoreInR2(
+  fileBuffer: Buffer,
+  originalName: string,
+  originalMimeType: string
+): Promise<{
   publicUrl: string;
   blurUrl: string;
 }> {
-  const { main, blur } = await processImageBuffers(fileBuffer);
-  const projectId = newOptimizedProjectId();
-  return uploadOptimizedPairToR2(projectId, main, blur);
+  try {
+    const { main, blur } = await processImageBuffers(fileBuffer);
+    const projectId = newOptimizedProjectId();
+    return uploadOptimizedPairToR2(projectId, main, blur);
+  } catch (err) {
+    console.warn('⚠️ Image optimization failed, uploading original asset instead:', err instanceof Error ? err.message : err);
+    return uploadRawFileToR2(originalName, fileBuffer, originalMimeType || 'application/octet-stream');
+  }
 }
