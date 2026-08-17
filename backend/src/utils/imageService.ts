@@ -49,6 +49,24 @@ export function optimizedObjectKeys(projectId: string): { mainKey: string; blurK
   return { mainKey: `${base}/main.webp`, blurKey: `${base}/blur.webp` };
 }
 
+export async function uploadOptimizedPairToR2(
+  projectId: string,
+  mainBuffer: Buffer,
+  blurBuffer: Buffer
+): Promise<{ publicUrl: string; blurUrl: string }> {
+  const { mainKey, blurKey } = optimizedObjectKeys(projectId);
+
+  await Promise.all([
+    uploadBufferToR2(mainKey, mainBuffer, 'image/webp'),
+    uploadBufferToR2(blurKey, blurBuffer, 'image/webp'),
+  ]);
+
+  return {
+    publicUrl: publicUrlFromStorageKey(mainKey),
+    blurUrl: publicUrlFromStorageKey(blurKey),
+  };
+}
+
 function extensionFromNameOrMime(name: string, mimeType: string): string {
   const sanitizedName = name.split('?')[0].split('#')[0];
   const extension = sanitizedName.split('.').pop() || '';
