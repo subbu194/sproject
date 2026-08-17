@@ -37,7 +37,7 @@ function ImageCarousel({ images, imageBlurUrls }: { images: string[]; imageBlurU
       <div className="relative group cursor-pointer" onClick={() => setLightbox(true)}>
         <div className="overflow-hidden rounded-2xl" style={{ backgroundColor: 'var(--warm-white)' }}>
           <OptimizedImage src={images[0]} blurSrc={imageBlurUrls?.[0]} alt="Press image" fit="contain" loading="eager" fetchPriority="high"
-            imgClassName="w-full h-auto max-h-[380px] transition-transform duration-500 group-hover:scale-[1.02]" />
+            imgClassName="w-full h-auto max-h-[320px] sm:max-h-[420px] lg:max-h-[480px] transition-transform duration-500 group-hover:scale-[1.02]" />
         </div>
         <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--brown)' }}>
           🔍 View full size
@@ -52,7 +52,7 @@ function ImageCarousel({ images, imageBlurUrls }: { images: string[]; imageBlurU
       <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ backgroundColor: 'var(--warm-white)' }}>
         <div className="relative cursor-pointer group" onClick={() => setLightbox(true)}>
           <OptimizedImage key={current} src={images[current]} blurSrc={imageBlurUrls?.[current]} alt={`Image ${current + 1} of ${images.length}`}
-            fit="contain" loading="eager" fetchPriority="high" imgClassName="w-full h-auto max-h-[380px] transition-all duration-500" />
+            fit="contain" loading="eager" fetchPriority="high" imgClassName="w-full h-auto max-h-[320px] sm:max-h-[420px] lg:max-h-[480px] transition-all duration-500" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
         <button onClick={(e) => { e.stopPropagation(); prev(); }}
@@ -209,7 +209,7 @@ export default function PressDetail() {
 
         {/* Images */}
         {item.images && item.images.length > 0 && (
-          <div className="max-w-3xl">
+          <div className="w-full max-w-4xl">
             <ImageCarousel images={item.images} imageBlurUrls={item.imageBlurUrls} />
           </div>
         )}

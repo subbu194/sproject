@@ -110,7 +110,7 @@ export default function LogEntry({
       <div className="pl-3">
         {/* Single preview image - reasonable size */}
         {images && images.length > 0 && (
-          <div className="float-right ml-4 mb-3 w-48 sm:w-56 overflow-hidden rounded-xl border border-[var(--brown)]/8">
+          <div className="mx-auto mb-4 w-full max-w-xs overflow-hidden rounded-xl border border-[var(--brown)]/8 sm:float-right sm:ml-4 sm:mb-3 sm:w-48 lg:w-56">
             <OptimizedImage
               src={images[0]}
               blurSrc={imageBlurUrls?.[0]}

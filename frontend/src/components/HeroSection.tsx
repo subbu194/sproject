@@ -69,7 +69,7 @@ export default function HeroSection() {
           {/* Glow background */}
           <div className="absolute h-[250px] w-[250px] sm:h-[350px] sm:w-[350px] lg:h-[420px] lg:w-[420px] rounded-full bg-[var(--gold)]/15 blur-3xl animate-float" />
 
-          <div className="relative w-full max-w-[280px] sm:max-w-[340px] md:max-w-[400px] lg:max-w-[460px] aspect-[4/5] overflow-hidden rounded-3xl border border-[var(--gold)]/20 shadow-[0_20px_60px_rgba(44,26,14,0.25)] group">
+          <div className="relative w-full max-w-[300px] sm:max-w-[360px] md:max-w-[430px] lg:max-w-[500px] aspect-[4/5] overflow-hidden rounded-3xl border border-[var(--gold)]/20 shadow-[0_20px_60px_rgba(44,26,14,0.25)] group">
             <img
               src={heroPhoto}
               alt="Salman Shariff"

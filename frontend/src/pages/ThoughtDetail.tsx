@@ -49,7 +49,7 @@ function ImageCarousel({
             fit="contain"
             loading="eager"
             fetchPriority="high"
-            imgClassName="w-full h-auto max-h-[380px] transition-transform duration-500 group-hover:scale-[1.02]"
+            imgClassName="w-full h-auto max-h-[320px] sm:max-h-[420px] lg:max-h-[480px] transition-transform duration-500 group-hover:scale-[1.02]"
           />
         </div>
         <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--brown)] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
@@ -74,7 +74,7 @@ function ImageCarousel({
             fit="contain"
             loading="eager"
             fetchPriority="high"
-            imgClassName="w-full h-auto max-h-[380px] transition-all duration-500"
+            imgClassName="w-full h-auto max-h-[320px] sm:max-h-[420px] lg:max-h-[480px] transition-all duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
@@ -226,7 +226,7 @@ export default function ThoughtDetail() {
 
         {/* Images */}
         {thought.images && thought.images.length > 0 && (
-          <div className="max-w-3xl">
+          <div className="w-full max-w-4xl">
             <ImageCarousel images={thought.images} imageBlurUrls={thought.imageBlurUrls} />
           </div>
         )}

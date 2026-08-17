@@ -85,7 +85,7 @@ function formatBody(text: string): React.ReactNode[] {
 }
 
 const detailImg =
-  'w-full h-auto max-h-[280px] sm:max-h-[320px] lg:max-h-[380px]';
+  'w-full h-auto max-h-[320px] sm:max-h-[380px] lg:max-h-[460px]';
 
 function ImageCarousel({
   images,
@@ -416,7 +416,7 @@ export default function LogDetail() {
         {/* Image Carousel - Compact */}
         {log.images && log.images.length > 0 && (
           <div className="w-full mb-8 sm:mb-10">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <ImageCarousel images={log.images} imageBlurUrls={log.imageBlurUrls} />
             </div>
           </div>
