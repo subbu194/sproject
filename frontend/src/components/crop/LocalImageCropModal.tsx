@@ -4,6 +4,7 @@ import type { CropperRef } from 'react-advanced-cropper';
 import 'react-advanced-cropper/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ZoomOut, RotateCw, Check, Scissors } from 'lucide-react';
+import { compressImageToBlob } from '../../utils/nativeImageCompress';
 
 export interface LocalImageCropModalProps {
   isOpen: boolean;
@@ -119,21 +120,34 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
     onClose();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!files || !onComplete) return;
-    const results = files.map((f, i) => ({
-      file: processedFiles[i] || f, // Fallback to original file if somehow bypassed
-      originalName: f.name,
-    }));
-    onComplete(results);
-    resetAndClose();
+    setIsProcessing(true);
+    try {
+      const results = await Promise.all(
+        files.map(async (f, i) => {
+          const processedOrOrig = processedFiles[i] || f;
+          const compressed = await compressImageToBlob(processedOrOrig, 1400, 0.85);
+          return {
+            file: compressed,
+            originalName: f.name,
+          };
+        })
+      );
+      setIsProcessing(false);
+      onComplete(results);
+      resetAndClose();
+    } catch (err) {
+      setIsProcessing(false);
+      setError('Failed to compress images before upload.');
+    }
   };
 
   const handleZoomIn = () => cropperRef.current?.zoomImage(1.1);
   const handleZoomOut = () => cropperRef.current?.zoomImage(0.9);
   const handleRotate = () => cropperRef.current?.rotateImage(90);
 
-  const allProcessed = files && Object.keys(processedFiles).length === files.length;
+
 
   return (
     <AnimatePresence>
@@ -239,7 +253,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
                         {isProcessing ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Check className="h-4 w-4" />}
                         Crop
                       </button>
-                      {allProcessed && (
+                      {files && files.length > 0 && (
                         <button type="button" onClick={handleSubmit} className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg bg-emerald-600 hover:bg-emerald-700 transition-all">
                           Upload All
                         </button>

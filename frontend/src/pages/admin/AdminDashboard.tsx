@@ -239,7 +239,7 @@ function ImageUploader({
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/*"
+          accept="image/jpeg, image/png, image/webp, image/gif"
           className="hidden"
           onChange={handleFileInputChange}
           disabled={uploading}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
 import ContactForm from '../components/ContactForm';
-import { FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { FaWhatsapp, FaInstagram, FaLinkedin, FaFacebook } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { Mail, ArrowLeft } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface SocialLinks {
   instagram?: string;
   linkedin?: string;
   twitter?: string;
+  facebook?: string;
   email?: string;
 }
 
@@ -38,6 +39,13 @@ export default function Connect() {
       icon: <FaWhatsapp className="h-5 w-5" />,
       url: formatUrl(social.whatsapp),
       hoverClass: 'hover:border-green-400 hover:bg-green-500 hover:text-white',
+    },
+    {
+      key: 'facebook',
+      label: 'Facebook',
+      icon: <FaFacebook className="h-5 w-5" />,
+      url: formatUrl(social.facebook),
+      hoverClass: 'hover:border-blue-400 hover:bg-blue-600 hover:text-white',
     },
     {
       key: 'instagram',

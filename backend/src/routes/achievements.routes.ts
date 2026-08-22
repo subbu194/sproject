@@ -12,8 +12,8 @@ import { verifyAdmin } from '../middleware/verifyAdmin';
 const router = Router();
 
 router.get('/', getAchievements);
-router.get('/:id', getAchievementById);
 router.get('/upload-url', verifyAdmin, getUploadUrl);
+router.get('/:id', getAchievementById);
 router.post('/', verifyAdmin, createAchievement);
 router.put('/:id', verifyAdmin, updateAchievement);
 router.delete('/:id', verifyAdmin, deleteAchievement);

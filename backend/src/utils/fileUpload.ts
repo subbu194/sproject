@@ -1,7 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { getR2Client } from '../config/r2';
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'lettt';
@@ -18,7 +18,7 @@ export const generateUploadUrlProfile = async (
     try {
         const s3Client = getR2Client();
         const fileExtension = fileName.split('.').pop() || 'jpg';
-        const uniqueFileName = `${uuidv4()}.${fileExtension}`;
+        const uniqueFileName = `${crypto.randomUUID()}.${fileExtension}`;
         
         // Determine the appropriate path based on folder and file type
         let key: string;

@@ -7,7 +7,7 @@ export async function getSocialLinks(req: Request, res: Response, next: NextFunc
     if (!links) {
       res.json({
         success: true,
-        data: { whatsapp: '', instagram: '', linkedin: '', twitter: '', email: '' },
+        data: { whatsapp: '', instagram: '', linkedin: '', twitter: '', facebook: '', email: '' },
       });
       return;
     }
@@ -19,10 +19,10 @@ export async function getSocialLinks(req: Request, res: Response, next: NextFunc
 
 export async function updateSocialLinks(req: Request, res: Response, next: NextFunction) {
   try {
-    const { whatsapp, instagram, linkedin, twitter, email } = req.body;
+    const { whatsapp, instagram, linkedin, twitter, facebook, email } = req.body;
     const links = await SocialLink.findOneAndUpdate(
       {},
-      { whatsapp, instagram, linkedin, twitter, email },
+      { whatsapp, instagram, linkedin, twitter, facebook, email },
       { upsert: true, returnDocument: 'after', runValidators: true }
     );
     res.json({ success: true, data: links });

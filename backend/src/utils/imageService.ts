@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { publicUrlFromStorageKey, uploadBufferToR2 } from './fileUpload';
 
 export const MAIN_MAX_WIDTH = 1400;
@@ -41,7 +41,7 @@ export async function processImageBuffers(input: Buffer): Promise<{ main: Buffer
 }
 
 export function newOptimizedProjectId(): string {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 export function optimizedObjectKeys(projectId: string): { mainKey: string; blurKey: string } {
