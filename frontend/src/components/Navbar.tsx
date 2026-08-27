@@ -37,14 +37,29 @@ export default function Navbar() {
   }, []);
 
   // The client requested a permanently transparent header with brighter text
-  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 rounded-full transition-all duration-500 backdrop-blur-md border bg-black/20 border-white/10 shadow-lg shadow-black/10`;
+  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 ${mobileOpen ? 'rounded-2xl bg-black/40' : 'rounded-full bg-black/20'} transition-all duration-300 backdrop-blur-md border border-white/10 shadow-lg shadow-black/10`;
 
   const textClasses = 'text-white';
   const mutedTextClasses = 'text-white/90 font-medium hover:text-[var(--gold)] hover:bg-white/10';
   const activeTextClasses = 'text-[var(--gold)] font-bold bg-white/10';
 
   return (
-    <nav className={navClasses}>
+    <>
+      {/* Mobile menu overlay - MUST BE OUTSIDE NAV */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <nav className={navClasses}>
       <div className="mx-auto flex max-w-7xl items-center justify-between pl-3 pr-5 py-2.5">
         {/* Logo */}
         <NavLink
@@ -111,53 +126,44 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu with Framer Motion */}
+      {/* Mobile menu dropdown content */}
       <AnimatePresence>
         {mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-50 border-t border-[var(--gold)]/10 bg-[var(--warm-white)] px-6 py-4 md:hidden"
-            >
-              <div className="flex flex-col gap-1">
-                {NAV_ITEMS.map((item, i) => (
-                  <motion.div
-                    key={item.sectionId}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 + 0.1, duration: 0.3 }}
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="relative z-50 border-t border-white/10 md:hidden overflow-hidden"
+          >
+            <div className="flex flex-col gap-1 px-6 py-4">
+              {NAV_ITEMS.map((item, i) => (
+                <motion.div
+                  key={item.sectionId}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 + 0.1, duration: 0.3 }}
+                >
+                  <NavLink
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `block rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-white/10 hover:text-[var(--gold)] ${
+                        isActive
+                          ? 'bg-white/10 text-[var(--gold)]'
+                          : 'text-white/90'
+                      }`
+                    }
                   >
-                    <NavLink
-                      to={item.path}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `block rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-[var(--cream)] hover:text-[var(--brown)] ${
-                          isActive
-                            ? 'bg-[var(--cream)] text-[var(--brown)]'
-                            : 'text-[var(--muted)]'
-                        }`
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </>
+                    {item.label}
+                  </NavLink>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </nav>
+    </>
   );
 }

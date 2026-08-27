@@ -218,12 +218,23 @@ export default function HeroSection() {
 
       {/* 1. INITIAL STATE: Center Title & Bouncing Arrow */}
       <div className="hero-intro absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center opacity-0 translate-y-4 pointer-events-none">
-        <h1 className="font-['Playfair_Display'] text-2xl font-medium tracking-wide text-white sm:text-3xl md:text-4xl pointer-events-auto">
-          Scroll to know about <span className="italic text-[var(--gold)]">Salman WTBI</span>
+        <h1 className="font-['Playfair_Display'] pointer-events-auto tracking-wide">
+          <span 
+            className="block text-2xl font-medium text-white/95 sm:text-3xl md:text-4xl lg:text-5xl"
+            style={{ textShadow: "1px 2px 8px rgba(0,0,0,0.7)" }}
+          >
+            Scroll to know about
+          </span>
+          <span 
+            className="mt-2 lg:mt-3 block text-4xl font-bold italic text-[var(--gold)] sm:text-5xl md:text-6xl lg:text-7xl"
+            style={{ textShadow: "2px 4px 12px rgba(0,0,0,0.8)" }}
+          >
+            Salman WTBI
+          </span>
         </h1>
 
         {/* Bouncing Arrow Indicator */}
-        <div className="mt-12 flex animate-bounce flex-col items-center justify-center">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex animate-bounce flex-col items-center justify-center">
           <span className="mb-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50">Scroll</span>
           <ChevronDown className="h-6 w-6 text-[var(--gold)]/80" strokeWidth={2} />
         </div>
