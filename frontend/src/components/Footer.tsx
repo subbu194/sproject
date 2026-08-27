@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useScroll, useMotionValueEvent } from 'framer-motion';
 import { SITE_NAME, FOOTER_TEXT } from '../constants/content';
 import { NAV_ITEMS } from '../constants/navItems';
 import apiClient from '../api/client';
@@ -19,14 +20,14 @@ interface SocialLinks {
 export default function Footer() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [social, setSocial] = useState<SocialLinks>({});
+  const { scrollY } = useScroll();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    const shouldShow = latest > 400;
+    if (showBackToTop !== shouldShow) {
+      setShowBackToTop(shouldShow);
+    }
+  });
 
   useEffect(() => {
     apiClient

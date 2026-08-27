@@ -14,9 +14,9 @@ export default function Home() {
   useEffect(() => {
     if (hash) {
       const el = document.getElementById(hash.replace('#', ''));
-      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+      if (el) setTimeout(() => el.scrollIntoView(), 100);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     }
   }, [hash]);
 
