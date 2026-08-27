@@ -21,7 +21,7 @@ export default function Story() {
       .get('/story/timeline')
       .then((res) => {
         const data = res.data?.data || res.data || [];
-        let parsedData = Array.isArray(data) ? [...data] : [];
+        const parsedData = Array.isArray(data) ? [...data] : [];
         parsedData.sort((a, b) => {
           const yearA = a.year.match(/\d{4}/);
           const yearB = b.year.match(/\d{4}/);

@@ -22,12 +22,12 @@ export async function getTimeline(req: Request, res: Response, next: NextFunctio
 
 export async function createTimelineEntry(req: Request, res: Response, next: NextFunction) {
   try {
-    const { year, title, description, order } = req.body;
+    const { year, title, description, order, images, imageBlurUrls } = req.body;
     if (!year || !title || !description) {
       res.status(400).json({ success: false, error: 'Year, title, and description are required' });
       return;
     }
-    const entry = await TimelineEntry.create({ year, title, description, order });
+    const entry = await TimelineEntry.create({ year, title, description, order, images, imageBlurUrls });
     res.status(201).json({ success: true, data: entry });
   } catch (err) {
     next(err);

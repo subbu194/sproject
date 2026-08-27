@@ -28,7 +28,7 @@ export default function StoryPreview() {
       .get('/story/timeline')
       .then((res) => {
         const data = res.data?.data || res.data || [];
-        let parsedData = Array.isArray(data) ? [...data] : [];
+        const parsedData = Array.isArray(data) ? [...data] : [];
         parsedData.sort((a, b) => {
           const yearA = a.year.match(/\d{4}/);
           const yearB = b.year.match(/\d{4}/);
@@ -43,7 +43,7 @@ export default function StoryPreview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = timeline.slice(0, 4);
+  const items = timeline.slice(0, 5);
 
   useGSAP(() => {
     if (loading || items.length === 0) return;
@@ -121,7 +121,7 @@ export default function StoryPreview() {
     });
 
     mm.add("(max-width: 1023px)", () => {
-      gsap.utils.toArray(".mobile-item").forEach((el: any) => {
+      gsap.utils.toArray<HTMLElement>(".mobile-item").forEach((el) => {
         const img = el.querySelector("img");
         
         gsap.fromTo(
@@ -195,7 +195,7 @@ export default function StoryPreview() {
             <div className="absolute bottom-12 left-12 z-20 xl:bottom-16 xl:left-16">
               <NavLink
                 to="/page/story"
-                className="group inline-flex items-center gap-2 rounded-full border border-[var(--brown)]/20 px-6 py-3 text-sm font-semibold text-[var(--brown)] transition hover:bg-[var(--brown)] hover:text-[var(--cream)]"
+                className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold-light)] px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--gold)]/20 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-[var(--gold)]/30"
               >
                 View Full Story
                 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
@@ -232,20 +232,25 @@ export default function StoryPreview() {
             {/* Right Side: Visuals */}
             <div className="relative flex w-1/2 items-center justify-center p-12 xl:p-16" style={{ perspective: "1000px" }}>
               <div className="relative h-full max-h-[70vh] w-full max-w-[600px]" style={{ transformStyle: "preserve-3d" }}>
-                {items.map((entry, i) => (
-                  <div key={entry._id} className={`desktop-img item-${i} absolute inset-0 overflow-hidden rounded-2xl shadow-2xl shadow-[var(--brown)]/15 border border-[var(--gold)]/20 bg-white/30 backdrop-blur-sm p-2`}>
-                    <div className="relative h-full w-full overflow-hidden rounded-xl">
-                    <OptimizedImage
-                      src={entry.images && entry.images.length > 0 ? entry.images[0] : "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop"}
-                      blurSrc={entry.imageBlurUrls?.[0]}
-                      alt={entry.title}
-                      fit="cover"
-                      loading={i === 0 ? "eager" : "lazy"}
-                      imgClassName="h-full w-full object-cover"
-                    />
+                {items.map((entry, i) => {
+                  const hasImage = entry.images && entry.images.length > 0;
+                  return (
+                    <div key={entry._id} className={`desktop-img item-${i} absolute inset-0 overflow-hidden rounded-2xl ${hasImage ? 'shadow-2xl shadow-[var(--brown)]/15 border border-[var(--gold)]/20 bg-white/30 backdrop-blur-sm p-2' : 'pointer-events-none'}`}>
+                      {hasImage && (
+                        <div className="relative h-full w-full overflow-hidden rounded-xl">
+                        <OptimizedImage
+                          src={entry.images![0]}
+                          blurSrc={entry.imageBlurUrls?.[0]}
+                          alt={entry.title}
+                          fit="cover"
+                          loading={i === 0 ? "eager" : "lazy"}
+                          imgClassName="h-full w-full object-cover"
+                        />
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -263,20 +268,24 @@ export default function StoryPreview() {
             </div>
 
             <div className="flex flex-col gap-12 sm:gap-16">
-              {items.map((entry) => (
-                <div key={entry._id} className="mobile-item flex flex-col gap-6">
-                  <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-sm sm:aspect-[16/9]">
-                    <OptimizedImage
-                      src={entry.images && entry.images.length > 0 ? entry.images[0] : "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop"}
-                      blurSrc={entry.imageBlurUrls?.[0]}
-                      alt={entry.title}
-                      fit="cover"
-                      loading="lazy"
-                      imgClassName="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-widest text-[var(--gold)]">
+              {items.map((entry) => {
+                const hasImage = entry.images && entry.images.length > 0;
+                return (
+                  <div key={entry._id} className="mobile-item flex flex-col gap-6">
+                    {hasImage && (
+                      <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-sm sm:aspect-[16/9]">
+                        <OptimizedImage
+                          src={entry.images![0]}
+                          blurSrc={entry.imageBlurUrls?.[0]}
+                          alt={entry.title}
+                          fit="cover"
+                          loading="lazy"
+                          imgClassName="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-widest text-[var(--gold)]">
                       {entry.year}
                     </div>
                     <h3 className="mt-2 font-['Playfair_Display'] text-2xl font-bold leading-tight text-[var(--brown)]">
@@ -287,13 +296,14 @@ export default function StoryPreview() {
                     </p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-12 text-center sm:text-left">
               <NavLink
                 to="/page/story"
-                className="group inline-flex items-center gap-2 rounded-full border border-[var(--brown)]/20 px-6 py-3 text-sm font-semibold text-[var(--brown)] transition hover:bg-[var(--brown)] hover:text-[var(--cream)]"
+                className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold-light)] px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--gold)]/20 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-[var(--gold)]/30"
               >
                 View Full Story
                 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>

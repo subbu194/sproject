@@ -11,6 +11,7 @@ export interface LocalImageCropModalProps {
   onClose: () => void;
   onComplete?: (processedFiles: { file: File | Blob; originalName: string }[]) => void;
   CircularCrop?: boolean;
+  aspectRatio?: number;
   outputMimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
   title?: string;
   files?: File[];
@@ -21,6 +22,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
   onClose,
   onComplete,
   CircularCrop = false,
+  aspectRatio,
   outputMimeType = 'image/jpeg',
   title = 'Crop Images',
   files,
@@ -99,7 +101,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
       setError('Failed to crop the image.');
       setIsProcessing(false);
     }
-  }, [outputMimeType, activeIndex, files]);
+  }, [outputMimeType, activeIndex, files, handleMarkProcessed]);
 
   const handleSkip = () => {
     if (files && files[activeIndex]) {
@@ -137,7 +139,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
       setIsProcessing(false);
       onComplete(results);
       resetAndClose();
-    } catch (err) {
+    } catch {
       setIsProcessing(false);
       setError('Failed to compress images before upload.');
     }
@@ -218,7 +220,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
                       ref={cropperRef}
                       src={imageSrc}
                       stencilComponent={CircularCrop ? CircleStencil : RectangleStencil}
-                      stencilProps={{ movable: true, resizable: true, lines: true, grid: true }}
+                      stencilProps={{ movable: true, resizable: true, lines: true, grid: true, aspectRatio }}
                       className="h-full w-full"
                       backgroundClassName="bg-[#1a0f07]"
                     />

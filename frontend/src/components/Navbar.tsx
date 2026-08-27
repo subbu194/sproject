@@ -9,7 +9,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(() => {
     if (typeof window === 'undefined') return false;
     const isHomePath = window.location.pathname === '/';
-    const threshold = isHomePath ? window.innerHeight * 9.8 : 10;
+    // Hero is pinned for 400% (500vh total), so we transition at 4.9 viewport heights
+    const threshold = isHomePath ? window.innerHeight * 4.9 : 10;
     return window.scrollY > threshold;
   });
   
@@ -19,7 +20,7 @@ export default function Navbar() {
   const isHome = location.pathname === '/';
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
-    const threshold = isHome ? window.innerHeight * 9.8 : 10;
+    const threshold = isHome ? window.innerHeight * 4.9 : 10;
     const isScrolled = latest > threshold;
     if (scrolled !== isScrolled) {
       setScrolled(isScrolled);
@@ -35,22 +36,12 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Determine styles based on route and scroll position for readability
-  const isDarkBg = isHome && !scrolled && !mobileOpen;
-  
-  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 rounded-full transition-all duration-500 backdrop-blur-md border ${
-    isDarkBg
-      ? 'bg-black/20 border-white/10 shadow-lg shadow-black/10'
-      : 'bg-white/60 border-[var(--brown)]/10 shadow-sm shadow-[var(--brown)]/5'
-  }`;
+  // The client requested a permanently transparent header with brighter text
+  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 rounded-full transition-all duration-500 backdrop-blur-md border bg-black/20 border-white/10 shadow-lg shadow-black/10`;
 
-  const textClasses = isDarkBg ? 'text-white' : 'text-[var(--brown)]';
-  const mutedTextClasses = isDarkBg 
-    ? 'text-white/80 hover:text-white hover:bg-white/20' 
-    : 'text-[var(--muted)] hover:text-[var(--brown)] hover:bg-[var(--brown)]/10';
-  const activeTextClasses = isDarkBg 
-    ? 'text-white font-semibold bg-white/20' 
-    : 'bg-[var(--brown)]/10 text-[var(--brown)] font-semibold';
+  const textClasses = 'text-white';
+  const mutedTextClasses = 'text-white/90 font-medium hover:text-[var(--gold)] hover:bg-white/10';
+  const activeTextClasses = 'text-[var(--gold)] font-bold bg-white/10';
 
   return (
     <nav className={navClasses}>
@@ -67,7 +58,7 @@ export default function Navbar() {
               <img
                 src="/sprojectlogo.png"
                 alt="S Project Logo"
-                className={`h-8 w-8 object-contain filter drop-shadow-sm transition-all duration-500 ${isDarkBg ? 'brightness-[2] contrast-150' : ''}`}
+                className="h-8 w-8 object-contain filter drop-shadow-sm transition-all duration-500 brightness-[2] contrast-150"
               />
             </div>
           </div>
@@ -95,9 +86,7 @@ export default function Navbar() {
 
         {/* Mobile toggle */}
         <button
-          className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors md:hidden ${
-            isDarkBg ? 'text-white hover:bg-white/10' : 'text-[var(--brown)] hover:bg-[var(--brown)]/5'
-          }`}
+          className="flex h-9 w-9 items-center justify-center rounded-full transition-colors md:hidden text-white hover:bg-white/10"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}

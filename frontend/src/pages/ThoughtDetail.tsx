@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import apiClient from '../api/client';
 import SectionPageShell from '../components/SectionPageShell';
@@ -27,14 +27,14 @@ function ImageCarousel({
   const [lightbox, setLightbox] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  const next = () => setCurrent((p) => (p + 1) % images.length);
-  const prev = () => setCurrent((p) => (p - 1 + images.length) % images.length);
+  const next = useCallback(() => setCurrent((p) => (p + 1) % images.length), [images.length]);
+  const prev = useCallback(() => setCurrent((p) => (p - 1 + images.length) % images.length), [images.length]);
 
   useEffect(() => {
     if (images.length <= 1 || paused) return;
     const t = setInterval(next, 4000);
     return () => clearInterval(t);
-  }, [images.length, paused]);
+  }, [images.length, paused, next]);
 
   if (images.length === 0) return null;
 
@@ -177,7 +177,7 @@ export default function ThoughtDetail() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!id) { setError(true); setLoading(false); return; }
+    if (!id) { queueMicrotask(() => { setError(true); setLoading(false); }); return; }
     apiClient
       .get(`/thoughts/${id}`)
       .then((res) => setThought(res.data?.data || res.data))

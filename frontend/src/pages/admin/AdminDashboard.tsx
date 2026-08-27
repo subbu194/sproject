@@ -38,7 +38,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 /* ─── Types ─── */
-interface TimelineEntry { _id: string; year: string; title: string; description: string; }
+interface TimelineEntry { _id: string; year: string; title: string; description: string; images?: string[]; imageBlurUrls?: string[]; }
 interface LogItem { _id: string; date: string; title: string; body: string; tags: string[]; published: boolean; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
 interface Thought { _id: string; topic: string; title: string; summary: string; published: boolean; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
 interface PressItem { _id: string; outlet: string; title: string; year: string; url: string; images: string[]; imageBlurUrls?: string[]; isOptimized?: boolean; }
@@ -118,12 +118,15 @@ function ImageUploader({
   images,
   imageBlurUrls,
   onChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   folder: _folder,
+  aspectRatio,
 }: {
   images: string[];
   imageBlurUrls?: string[];
   onChange: (imgs: string[], blurs: string[]) => void;
   folder: string;
+  aspectRatio?: number;
 }) {
   const [uploading, setUploading] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -255,6 +258,7 @@ function ImageUploader({
           title={`Crop Images (${selectedFiles.length})`}
           outputMimeType="image/webp"
           files={selectedFiles}
+          aspectRatio={aspectRatio}
         />
       )}
     </div>
@@ -305,7 +309,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     // Prevent stale cross-section filters from making unrelated modules look empty.
-    setGlobalSearch('');
+    queueMicrotask(() => setGlobalSearch(''));
   }, [activeSection]);
 
   const handleLogout = () => {
@@ -430,7 +434,7 @@ function TimelineManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<TimelineEntry[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ year: '', title: '', description: '' });
+  const [form, setForm] = useState({ year: '', title: '', description: '', images: [] as string[], imageBlurUrls: [] as string[] });
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => { apiClient.get('/story/timeline', { params: { search: debouncedSearch } }).then((r) => setItems(extractData(r))).catch(() => {}); }, [debouncedSearch]);
@@ -438,10 +442,10 @@ function TimelineManager({ searchQuery }: { searchQuery: string }) {
   const openForm = (item?: TimelineEntry) => {
     if (item) {
       setEditingId(item._id);
-      setForm({ year: item.year, title: item.title, description: item.description });
+      setForm({ year: item.year, title: item.title, description: item.description, images: item.images || [], imageBlurUrls: padBlurUrls(item.images, item.imageBlurUrls) });
     } else {
       setEditingId(null);
-      setForm({ year: '', title: '', description: '' });
+      setForm({ year: '', title: '', description: '', images: [], imageBlurUrls: [] });
     }
     setModalOpen(true);
   };
@@ -469,8 +473,12 @@ function TimelineManager({ searchQuery }: { searchQuery: string }) {
           {items.map((item) => (
             <div key={item._id} className="group flex items-start justify-between rounded-2xl border-2 border-[var(--brown)]/5 bg-[var(--warm-white)] p-6 transition-all hover:border-[var(--brown)]/10 hover:shadow-lg">
               <div className="flex gap-5">
-                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-white font-black text-[var(--gold)] ring-1 ring-inset ring-[var(--gold)]/20 shadow-sm">
-                  {item.year.slice(-2)}'
+                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-white font-black text-[var(--gold)] ring-1 ring-inset ring-[var(--gold)]/20 shadow-sm overflow-hidden relative">
+                  {item.images && item.images.length > 0 ? (
+                    <img src={item.images[0]} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <>{item.year.slice(-2)}'</>
+                  )}
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-[var(--brown)]">{item.title}</h4>
@@ -494,6 +502,13 @@ function TimelineManager({ searchQuery }: { searchQuery: string }) {
             <FormInput label="Header Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} placeholder="Launched X..." />
           </div>
           <FormTextarea label="Core Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={5} placeholder="A brief narrative about this chapter..." />
+          <ImageUploader
+            images={form.images}
+            imageBlurUrls={form.imageBlurUrls}
+            onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
+            folder="story"
+            aspectRatio={1}
+          />
           <div className="flex justify-end gap-3 pt-4 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Cancel Setup</Btn>
             <Btn onClick={save} icon={editingId ? Edit2 : Plus}>{editingId ? 'Save Changes' : 'Establish Timeline Node'}</Btn>

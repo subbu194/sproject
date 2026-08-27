@@ -48,7 +48,7 @@ export default function HeroSection() {
   useEffect(() => {
     if (videoRef.current) {
       if (videoRef.current.readyState >= 3) {
-        setIsVideoLoaded(true);
+        queueMicrotask(() => setIsVideoLoaded(true));
       }
     }
   }, []);
@@ -199,7 +199,7 @@ export default function HeroSection() {
           </video>
         </div>
         {/* Dynamic Gradient Overlay */}
-        <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/90 opacity-100 will-change-opacity" />
+        <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70 opacity-100 will-change-opacity" />
       </div>
 
       {/* Branded Loading Experience */}

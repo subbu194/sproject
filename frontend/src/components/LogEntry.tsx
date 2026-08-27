@@ -11,6 +11,7 @@ interface LogEntryProps {
   /** Parallel blur / LQIP URLs (same order as `images`). */
   imageBlurUrls?: string[];
   readMoreLink?: string;
+  variant?: 'list' | 'card';
 }
 
 function formatBody(text: string): React.ReactNode[] {
@@ -95,12 +96,60 @@ export default function LogEntry({
   images,
   imageBlurUrls,
   readMoreLink,
+  variant = 'list',
 }: LogEntryProps) {
   const isLong = body.length > 200;
   const displayBody = isLong ? body.slice(0, 200) + '...' : body;
   
   // Link to detail page if id is provided, otherwise use readMoreLink
   const detailLink = id ? `/page/daily-log/${id}` : readMoreLink;
+
+  if (variant === 'card') {
+    const cardContent = (
+      <div className="flex h-full flex-col">
+        {images && images.length > 0 ? (
+          <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-t-[2rem]">
+            <OptimizedImage
+              src={images[0]}
+              blurSrc={imageBlurUrls?.[0]}
+              alt=""
+              fit="cover"
+              loading="lazy"
+              imgClassName="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            {images.length > 1 && (
+              <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                +{images.length - 1} MORE
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="aspect-[4/3] w-full shrink-0 rounded-t-[2rem] bg-[var(--cream)]" />
+        )}
+        
+        <div className="flex flex-grow flex-col justify-center p-6 sm:p-8">
+          <div className="mb-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--gold)]">
+            {date}
+          </div>
+          <h3 className="font-['Playfair_Display'] text-xl sm:text-2xl font-bold leading-snug text-[var(--brown)] line-clamp-3" title={title}>
+            {title}
+          </h3>
+        </div>
+      </div>
+    );
+
+    const cardClasses = "group relative block h-[460px] sm:h-[500px] w-[340px] sm:w-[400px] shrink-0 overflow-hidden rounded-[2rem] bg-white/90 shadow-xl shadow-[var(--brown)]/5 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[var(--brown)]/10";
+
+    if (detailLink) {
+      return (
+        <NavLink to={detailLink} className={cardClasses}>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          {cardContent}
+        </NavLink>
+      );
+    }
+    return <article className={cardClasses}>{cardContent}</article>;
+  }
 
   const content = (
     <>

@@ -357,8 +357,7 @@ export default function LogDetail() {
 
   useEffect(() => {
     if (!id) {
-      setError(true);
-      setLoading(false);
+      queueMicrotask(() => { setError(true); setLoading(false); });
       return;
     }
 

@@ -27,7 +27,7 @@ export default function SmoothScroller({ children }: { children: React.ReactNode
       syncTouch: true, // Syncs touch events for touchpads
       wheelMultiplier: 1,
       touchMultiplier: 1, // Reduced to prevent aggressive touchpad scaling
-      // @ts-ignore - Some Lenis typedef versions omit this but it is required to fix trackpad velocity
+      // @ts-expect-error Lenis provides raf as a property but type definitions might be missing or incomplete - Some Lenis typedef versions omit this but it is required to fix trackpad velocity
       normalizeWheel: true,
     });
     lenisRef.current = lenis;
