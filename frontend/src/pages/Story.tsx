@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
-import { ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import apiClient from '../api/client';
@@ -158,17 +157,6 @@ export default function Story() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_100%_at_50%_0%,rgba(200,150,42,0.10)_0%,transparent_70%)]" />
         <div className="relative mx-auto max-w-6xl">
 
-          {/* Back button — hidden on mobile, users use swipe gestures */}
-          <NavLink
-            to="/"
-            className="group mb-5 hidden sm:inline-flex items-center gap-2.5 rounded-full border border-[var(--brown)]/12 bg-white/80 py-2 pl-3 pr-5 text-sm font-medium text-[var(--brown)] shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-[var(--gold)]/50 hover:bg-white hover:shadow-md"
-          >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--cream)] transition-all duration-200 group-hover:bg-[var(--gold)]/10 group-hover:-translate-x-0.5">
-              <ArrowLeft className="h-3.5 w-3.5 text-[var(--brown)] group-hover:text-[var(--gold)]" />
-            </span>
-            Back to Home
-          </NavLink>
-
           {/* Compact title row */}
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
             <div>
@@ -208,9 +196,10 @@ export default function Story() {
             Timeline coming soon.
           </div>
         ) : (
-          <div className="relative">
+          <div>
 
-            {/* === DESKTOP CENTER LINE === */}
+            {/* === Lines and entries wrapped in their own relative container === */}
+            <div className="relative">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-[var(--brown)]/8 lg:block" />
             <div
               ref={progressBarRef}
@@ -340,8 +329,8 @@ export default function Story() {
                 );
               })}
             </div>
-
-            {/* End marker */}
+          </div>
+            {/* End marker — outside the relative line container so line stops here */}
             <div className="mt-20 flex flex-col items-center gap-3 text-center">
               <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--gold)] to-[var(--gold-light)] shadow-lg shadow-[var(--gold)]/30">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

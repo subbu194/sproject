@@ -36,12 +36,38 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // The client requested a permanently transparent header with brighter text
-  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 ${mobileOpen ? 'rounded-2xl bg-black/40' : 'rounded-full bg-black/20'} transition-all duration-300 backdrop-blur-md border border-white/10 shadow-lg shadow-black/10`;
+  // On home page: dark transparent glass (over hero video)
+  // On other pages: warm cream frosted glass (matches site light theme)
+  const isLight = !isHome;
 
-  const textClasses = 'text-white';
-  const mutedTextClasses = 'text-white/90 font-medium hover:text-[var(--gold)] hover:bg-white/10';
-  const activeTextClasses = 'text-[var(--gold)] font-bold bg-white/10';
+  const navBg = isLight
+    ? mobileOpen
+      ? 'rounded-2xl bg-[var(--cream)]/95 border-[var(--brown)]/12 shadow-[var(--brown)]/8'
+      : 'rounded-full bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8'
+    : mobileOpen
+      ? 'rounded-2xl bg-black/40 border-white/10 shadow-black/10'
+      : 'rounded-full bg-black/20 border-white/10 shadow-black/10';
+
+  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 transition-all duration-300 backdrop-blur-md border shadow-lg ${navBg}`;
+
+  const logoTextClass = isLight ? 'text-[var(--brown)]' : 'text-white';
+  const mutedTextClasses = isLight
+    ? 'text-[var(--brown)]/80 font-medium hover:text-[var(--gold)] hover:bg-[var(--brown)]/5'
+    : 'text-white/90 font-medium hover:text-[var(--gold)] hover:bg-white/10';
+  const activeTextClasses = isLight
+    ? 'text-[var(--gold)] font-bold bg-[var(--gold)]/8'
+    : 'text-[var(--gold)] font-bold bg-white/10';
+  const hamburgerClass = isLight
+    ? 'text-[var(--brown)] hover:bg-[var(--brown)]/8'
+    : 'text-white hover:bg-white/10';
+  const dropdownItemBase = isLight
+    ? 'hover:bg-[var(--brown)]/6 hover:text-[var(--gold)]'
+    : 'hover:bg-white/10 hover:text-[var(--gold)]';
+  const dropdownItemActive = isLight
+    ? 'bg-[var(--gold)]/8 text-[var(--gold)]'
+    : 'bg-white/10 text-[var(--gold)]';
+  const dropdownItemInactive = isLight ? 'text-[var(--brown)]/80' : 'text-white/90';
+  const dropdownBorder = isLight ? 'border-[var(--brown)]/10' : 'border-white/10';
 
   return (
     <>
@@ -64,10 +90,9 @@ export default function Navbar() {
         {/* Logo */}
         <NavLink
           to="/"
-          className={`flex items-center gap-3 group transition-all duration-300 hover:scale-[1.03] ${textClasses}`}
+          className={`flex items-center gap-3 group transition-all duration-300 hover:scale-[1.03] ${logoTextClass}`}
         >
           <div className="relative">
-            {/* Gold gradient background for logo */}
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)] via-[var(--gold-light)] to-[var(--gold)] rounded-full blur-xl opacity-20 group-hover:opacity-35 transition-opacity duration-300"></div>
             <div className="relative bg-gradient-to-br from-[var(--gold)]/10 via-[var(--gold-light)]/5 to-[var(--gold)]/10 p-1.5 rounded-full border border-[var(--gold)]/20 backdrop-blur-sm">
               <img
@@ -101,7 +126,7 @@ export default function Navbar() {
 
         {/* Mobile toggle */}
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-full transition-colors md:hidden text-white hover:bg-white/10"
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors md:hidden ${hamburgerClass}`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
@@ -134,7 +159,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="relative z-50 border-t border-white/10 md:hidden overflow-hidden"
+            className={`relative z-50 border-t md:hidden overflow-hidden ${dropdownBorder}`}
           >
             <div className="flex flex-col gap-1 px-6 py-4">
               {NAV_ITEMS.map((item, i) => (
@@ -148,10 +173,10 @@ export default function Navbar() {
                     to={item.path}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                      `block rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-white/10 hover:text-[var(--gold)] ${
+                      `block rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${dropdownItemBase} ${
                         isActive
-                          ? 'bg-white/10 text-[var(--gold)]'
-                          : 'text-white/90'
+                          ? dropdownItemActive
+                          : dropdownItemInactive
                       }`
                     }
                   >

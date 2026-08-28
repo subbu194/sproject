@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import apiClient from '../api/client';
-import SectionPageShell from '../components/SectionPageShell';
 import OptimizedImage from '../components/OptimizedImage';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -33,32 +32,32 @@ function formatBody(text: string): React.ReactNode[] {
 
     if (h1Match) {
       elements.push(
-        <h4 key={key++} className="mt-6 mb-3 text-xl font-bold text-[var(--brown)] first:mt-0">
+        <h4 key={key++} className="mt-8 mb-4 font-['Playfair_Display'] text-2xl font-bold text-[var(--brown)] first:mt-0">
           {h1Match[1]}
         </h4>
       );
     } else if (h2Match) {
       elements.push(
-        <h5 key={key++} className="mt-5 mb-2 text-lg font-bold text-[var(--brown)] first:mt-0">
+        <h5 key={key++} className="mt-6 mb-3 font-['Playfair_Display'] text-xl font-bold text-[var(--brown)] first:mt-0">
           {h2Match[1]}
         </h5>
       );
     } else if (h3Match) {
       elements.push(
-        <h6 key={key++} className="mt-4 mb-2 text-base font-bold text-[var(--brown-light)] first:mt-0">
+        <h6 key={key++} className="mt-5 mb-2 font-['Playfair_Display'] text-lg font-bold text-[var(--brown-light)] first:mt-0">
           {h3Match[1]}
         </h6>
       );
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       elements.push(
-        <li key={key++} className="ml-5 text-base leading-relaxed text-[var(--muted)] list-disc">
+        <li key={key++} className="ml-6 text-lg leading-relaxed text-[var(--muted)] list-disc my-2">
           {line.slice(2)}
         </li>
       );
     } else if (/^\d+\.\s/.test(line)) {
       const content = line.replace(/^\d+\.\s/, '');
       elements.push(
-        <li key={key++} className="ml-5 text-base leading-relaxed text-[var(--muted)] list-decimal">
+        <li key={key++} className="ml-6 text-lg leading-relaxed text-[var(--muted)] list-decimal my-2">
           {content}
         </li>
       );
@@ -74,7 +73,7 @@ function formatBody(text: string): React.ReactNode[] {
         .replace(/\s+$/, '');
 
       elements.push(
-        <p key={key++} className="mt-3 text-base leading-relaxed text-[var(--muted)] first:mt-0">
+        <p key={key++} className="mt-4 text-lg leading-relaxed text-[var(--muted)] first:mt-0">
           {formattedLine}
         </p>
       );
@@ -82,194 +81,6 @@ function formatBody(text: string): React.ReactNode[] {
   }
 
   return elements;
-}
-
-const detailImg =
-  'w-full h-auto max-h-[320px] sm:max-h-[380px] lg:max-h-[460px]';
-
-function ImageCarousel({
-  images,
-  imageBlurUrls,
-}: {
-  images: string[];
-  imageBlurUrls?: string[];
-}) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-
-  const goNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-  const goPrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  const goToSlide = (index: number) => setCurrentIndex(index);
-
-  const openLightbox = () => setLightboxOpen(true);
-  const closeLightbox = () => setLightboxOpen(false);
-
-  // Auto-scroll every 4 seconds when not paused
-  useEffect(() => {
-    if (images.length <= 1 || isPaused) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [images.length, isPaused]);
-
-  if (images.length === 0) return null;
-
-  // Single image - compact display
-  if (images.length === 1) {
-    return (
-      <div 
-        className="relative group cursor-pointer"
-        onClick={openLightbox}
-      >
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b from-[var(--warm-white)] to-[var(--cream)]/50">
-          <OptimizedImage
-            src={images[0]}
-            blurSrc={imageBlurUrls?.[0]}
-            alt="Log entry image"
-            fit="contain"
-            loading="eager"
-            fetchPriority="high"
-            imgClassName={`${detailImg} transition-transform duration-500 group-hover:scale-[1.02]`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </div>
-        <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-[var(--brown)] text-xs font-medium px-3 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300">
-          🔍 View full size
-        </div>
-        {lightboxOpen && (
-          <Lightbox
-            images={images}
-            imageBlurUrls={imageBlurUrls}
-            currentIndex={0}
-            onClose={closeLightbox}
-            onNext={goNext}
-            onPrev={goPrev}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Multiple images - compact carousel
-  return (
-    <div 
-      className="relative"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {/* Main carousel container */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b from-[var(--warm-white)] to-[var(--cream)]/50 shadow-lg">
-        {/* Image container */}
-        <div 
-          className="relative w-full cursor-pointer group"
-          onClick={openLightbox}
-        >
-          <OptimizedImage
-            key={currentIndex}
-            src={images[currentIndex]}
-            blurSrc={imageBlurUrls?.[currentIndex]}
-            alt={`Image ${currentIndex + 1} of ${images.length}`}
-            fit="contain"
-            loading="eager"
-            fetchPriority="high"
-            imgClassName={`${detailImg} transition-all duration-500 ease-out`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </div>
-
-        {/* Navigation arrows - responsive sizing */}
-        <button 
-          onClick={(e) => { e.stopPropagation(); goPrev(); }}
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/95 backdrop-blur-sm p-2 sm:p-3 text-[var(--brown)] shadow-xl hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 z-10"
-        >
-          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-        </button>
-        <button 
-          onClick={(e) => { e.stopPropagation(); goNext(); }}
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/95 backdrop-blur-sm p-2 sm:p-3 text-[var(--brown)] shadow-xl hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 z-10"
-        >
-          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-        </button>
-
-        {/* Top info bar */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 sm:p-4 bg-gradient-to-b from-black/40 to-transparent">
-          <div className="flex items-center gap-2">
-            {!isPaused && (
-              <div className="bg-[var(--gold)] text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                Auto
-              </div>
-            )}
-          </div>
-          <div className="bg-white/95 backdrop-blur-sm text-[var(--brown)] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg">
-            {currentIndex + 1} / {images.length}
-          </div>
-        </div>
-
-        {/* Bottom hint */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm text-[var(--brown)] text-xs sm:text-sm font-medium px-4 py-2 rounded-full shadow-lg opacity-70 hover:opacity-100 transition-opacity">
-          Click image to view full size
-        </div>
-      </div>
-
-      {/* Progress dots - responsive */}
-      <div className="flex justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 px-4">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`h-2 sm:h-2.5 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? 'w-6 sm:w-8 bg-[var(--gold)] shadow-md' 
-                : 'w-2 sm:w-2.5 bg-[var(--brown)]/25 hover:bg-[var(--brown)]/50'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Thumbnail strip - responsive */}
-      <div className="mt-4 sm:mt-6 px-2 sm:px-0">
-        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-[var(--brown)]/20 scrollbar-track-transparent">
-          {images.map((img, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`flex-shrink-0 snap-start rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'w-24 h-18 sm:w-28 sm:h-20 lg:w-32 lg:h-24 ring-2 ring-[var(--gold)] ring-offset-2 shadow-lg scale-105' 
-                  : 'w-20 h-14 sm:w-24 sm:h-16 lg:w-28 lg:h-20 opacity-50 hover:opacity-90 hover:scale-102'
-              }`}
-            >
-              <OptimizedImage
-                src={img}
-                blurSrc={imageBlurUrls?.[index]}
-                alt={`Thumbnail ${index + 1}`}
-                fit="cover"
-                loading="lazy"
-                imgClassName="h-full w-full"
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Lightbox */}
-      {lightboxOpen && (
-        <Lightbox
-          images={images}
-          imageBlurUrls={imageBlurUrls}
-          currentIndex={currentIndex}
-          onClose={closeLightbox}
-          onNext={goNext}
-          onPrev={goPrev}
-        />
-      )}
-    </div>
-  );
 }
 
 function Lightbox({
@@ -289,7 +100,7 @@ function Lightbox({
 }) {
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       <button 
@@ -302,13 +113,13 @@ function Lightbox({
       {images.length > 1 && (
         <>
           <button 
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition-colors z-10"
+            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition-colors z-10"
             onClick={(e) => { e.stopPropagation(); onPrev(); }}
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
           <button 
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition-colors z-10"
+            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition-colors z-10"
             onClick={(e) => { e.stopPropagation(); onNext(); }}
           >
             <ChevronRight className="h-6 w-6" />
@@ -316,33 +127,31 @@ function Lightbox({
         </>
       )}
       
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] max-w-[90vw]">
-        <OptimizedImage
+      <div onClick={(e) => e.stopPropagation()} className="relative max-h-[85vh] max-w-5xl w-full flex items-center justify-center">
+        <img
           key={`lb-${currentIndex}`}
           src={images[currentIndex]}
-          blurSrc={imageBlurUrls?.[currentIndex]}
           alt=""
-          fit="contain"
-          loading="eager"
-          fetchPriority="high"
-          imgClassName="max-h-[90vh] max-w-[90vw] rounded-lg"
+          className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
         />
       </div>
       
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          {images.map((_, index) => (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 bg-black/40 p-2 rounded-2xl backdrop-blur-sm">
+          {images.map((img, index) => (
             <div
               key={index}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-white' : 'bg-white/40'
+              className={`h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                index === currentIndex ? 'border-[var(--gold)] opacity-100 scale-105' : 'border-transparent opacity-50 hover:opacity-80'
               }`}
-            />
+            >
+              <img src={img} alt="" className="h-full w-full object-cover" />
+            </div>
           ))}
         </div>
       )}
       
-      <div className="absolute bottom-4 right-4 text-white/70 text-sm font-medium">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-white/80 backdrop-blur-sm">
         {currentIndex + 1} / {images.length}
       </div>
     </div>
@@ -354,6 +163,9 @@ export default function LogDetail() {
   const [log, setLog] = useState<LogItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!id) {
@@ -371,24 +183,40 @@ export default function LogDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Handle lightbox keyboard nav
+  useEffect(() => {
+    if (!lightboxOpen || !log || !log.images) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowLeft') setCurrentIndex((prev) => (prev - 1 + log.images!.length) % log.images!.length);
+      if (e.key === 'ArrowRight') setCurrentIndex((prev) => (prev + 1) % log.images!.length);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightboxOpen, log]);
+
   if (loading) {
     return (
-      <SectionPageShell kicker="Daily Log" title="Loading..." subtitle="">
-        <div className="skeleton h-64 w-full rounded-2xl" />
-      </SectionPageShell>
+      <div className="min-h-screen bg-[var(--warm-white)] pt-32 px-6 lg:px-20 max-w-4xl mx-auto">
+        <div className="skeleton h-8 w-24 mb-4 rounded" />
+        <div className="skeleton h-12 w-3/4 mb-10 rounded" />
+        <div className="skeleton h-[50vh] w-full rounded-2xl mb-10" />
+      </div>
     );
   }
 
   if (error || !log) {
     return (
-      <SectionPageShell kicker="Daily Log" title="Not Found" subtitle="This log entry could not be found.">
+      <div className="min-h-screen bg-[var(--warm-white)] pt-32 px-6 lg:px-20 max-w-4xl mx-auto text-center">
+        <h1 className="font-['Playfair_Display'] text-4xl font-bold text-[var(--brown)] mb-6">Not Found</h1>
+        <p className="text-[var(--muted)] mb-8">This log entry could not be found.</p>
         <NavLink 
           to="/page/daily-log" 
           className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors"
         >
           ← Back to Daily Log
         </NavLink>
-      </SectionPageShell>
+      </div>
     );
   }
 
@@ -399,58 +227,146 @@ export default function LogDetail() {
     year: 'numeric',
   });
 
-  return (
-    <SectionPageShell kicker="Daily Log" title={log.title} subtitle={formattedDate}>
-      <div className="w-full">
-        {/* Back navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-          <NavLink 
-            to="/page/daily-log" 
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors"
-          >
-            ← Back to Daily Log
-          </NavLink>
-        </div>
+  const hasImage = log.images && log.images.length > 0;
 
-        {/* Image Carousel - Compact */}
-        {log.images && log.images.length > 0 && (
-          <div className="w-full mb-8 sm:mb-10">
-            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <ImageCarousel images={log.images} imageBlurUrls={log.imageBlurUrls} />
+  return (
+    <div className="bg-[var(--warm-white)] lg:flex lg:min-h-screen">
+      {/* Back button (Mobile only) */}
+      <div className="lg:hidden absolute top-4 left-4 z-30">
+        <NavLink 
+          to="/page/daily-log" 
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-black/40"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </NavLink>
+      </div>
+
+      {/* Left Side: Sticky Image Area (only if hasImage) */}
+      {hasImage && (
+        <div className="w-full lg:w-1/2 lg:sticky lg:top-0 lg:h-screen lg:pt-[100px] lg:px-12 lg:pb-12 flex flex-col items-center justify-center">
+          <div className="relative w-full h-[45vh] sm:h-[55vh] lg:h-full max-h-[800px] bg-[var(--brown)] overflow-hidden lg:rounded-3xl lg:shadow-2xl">
+            {/* Back button (Desktop) */}
+            <div className="hidden lg:block absolute top-6 left-6 z-30">
+              <NavLink 
+                to="/page/daily-log" 
+                className="flex items-center gap-2 rounded-full bg-black/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/40 shadow-sm"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Logs
+              </NavLink>
             </div>
+
+            <OptimizedImage
+              src={log.images![0]}
+              blurSrc={log.imageBlurUrls?.[0]}
+              alt={log.title}
+              fit="cover"
+              loading="eager"
+              fetchPriority="high"
+              className="h-full"
+              imgClassName="w-full h-full object-cover transition-transform duration-1000 hover:scale-105 cursor-pointer opacity-85"
+            />
+          <div 
+            className="absolute inset-0 cursor-pointer" 
+            onClick={() => { setLightboxOpen(true); setCurrentIndex(0); }} 
+          />
+          
+          {/* Subtle gradient for aesthetics */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/20" />
+
+          {/* Corner Thumbnails */}
+          {log.images!.length > 1 && (
+            <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20 flex gap-2">
+              {log.images!.slice(1, 4).map((img, j) => (
+                <button
+                  key={j}
+                  onClick={() => { setLightboxOpen(true); setCurrentIndex(j + 1); }}
+                  className="h-14 w-20 sm:h-16 sm:w-24 lg:h-20 lg:w-28 overflow-hidden rounded-xl border-2 border-white/20 shadow-xl transition-all hover:scale-105 hover:border-white/60"
+                >
+                  <OptimizedImage src={img} blurSrc={log.imageBlurUrls?.[j + 1]} alt="" fit="cover" loading="lazy" className="h-full" imgClassName="h-full w-full object-cover" />
+                </button>
+              ))}
+              {log.images!.length > 4 && (
+                <button
+                  onClick={() => { setLightboxOpen(true); setCurrentIndex(4); }}
+                  className="flex h-14 w-20 sm:h-16 sm:w-24 lg:h-20 lg:w-28 items-center justify-center rounded-xl border-2 border-white/20 bg-black/50 text-sm font-bold text-white shadow-xl backdrop-blur-sm transition-colors hover:bg-black/70 hover:border-white/60"
+                >
+                  +{log.images!.length - 4}
+                </button>
+              )}
+            </div>
+          )}
+          </div>
+        </div>
+      )}
+
+      {/* Right Side: Scrolling Content */}
+      <div className={`w-full flex flex-col pt-10 pb-20 px-5 sm:px-8 ${hasImage ? 'lg:w-1/2 lg:pt-[100px] lg:px-12 xl:px-16' : 'max-w-4xl mx-auto lg:pt-40'}`}>
+        
+        {/* Back button (Desktop No Image) */}
+        {!hasImage && (
+          <div className="hidden lg:block mb-12">
+            <NavLink 
+              to="/page/daily-log" 
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Logs
+            </NavLink>
           </div>
         )}
 
-        {/* Content Section - Full Width */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Full Body Text */}
-          <article className="bg-white rounded-2xl border border-[var(--brown)]/8 p-5 sm:p-8 lg:p-10 shadow-sm">
-            <div className="prose prose-lg max-w-none text-left">
-              {formatBody(log.body)}
-            </div>
-          </article>
-
-          {/* Tags */}
-          {log.tags && log.tags.length > 0 && (
-            <div className="mt-8 sm:mt-10 pt-6 border-t border-[var(--brown)]/10">
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)] mb-4">
-                Tags
-              </div>
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {log.tags.map((tag) => (
-                  <NavLink
-                    key={tag}
-                    to={`/page/daily-log?tag=${encodeURIComponent(tag)}`}
-                    className="rounded-full bg-[var(--cream)] px-4 sm:px-5 py-2 text-sm font-medium text-[var(--brown-light)] transition-all duration-200 hover:bg-[var(--gold)]/15 hover:text-[var(--gold)] hover:shadow-md"
-                  >
-                    {tag}
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Header Info */}
+        <div className="mb-12">
+          <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)]">
+            <span className="inline-block h-px w-6 bg-[var(--gold)]" />
+            Daily Log
+          </div>
+          <h1 className="font-['Playfair_Display'] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--brown)] mb-6 leading-tight">
+            {log.title}
+          </h1>
+          <p className="text-base sm:text-lg text-[var(--muted)] font-medium tracking-wide">
+            {formattedDate}
+          </p>
         </div>
+
+        {/* Body Content */}
+        <article className="prose prose-lg prose-p:text-[var(--muted)] prose-p:leading-[1.8] prose-p:text-lg max-w-none text-left flex-1">
+          {formatBody(log.body)}
+        </article>
+
+        {/* Tags */}
+        {log.tags && log.tags.length > 0 && (
+          <div className="mt-16 pt-8 border-t border-[var(--brown)]/10">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)] mb-5">
+              Tagged under
+            </div>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {log.tags.map((tag) => (
+                <NavLink
+                  key={tag}
+                  to={`/page/daily-log?tag=${encodeURIComponent(tag)}`}
+                  className="rounded-full bg-[var(--cream)] px-5 py-2 text-sm font-medium text-[var(--brown-light)] transition-all duration-200 hover:bg-[var(--gold)]/15 hover:text-[var(--gold)] hover:shadow-sm"
+                >
+                  #{tag}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </SectionPageShell>
+
+      {/* Lightbox Modal */}
+      {lightboxOpen && log.images && (
+        <Lightbox
+          images={log.images}
+          imageBlurUrls={log.imageBlurUrls}
+          currentIndex={currentIndex}
+          onClose={() => setLightboxOpen(false)}
+          onNext={() => setCurrentIndex((prev) => (prev + 1) % log.images!.length)}
+          onPrev={() => setCurrentIndex((prev) => (prev - 1 + log.images!.length) % log.images!.length)}
+        />
+      )}
+    </div>
   );
 }
