@@ -61,6 +61,7 @@ export default function DailyLogPreview() {
         end: () => `+=${getScrollAmount()}`, 
         pin: true,
         scrub: 1,
+        refreshPriority: 0,
         invalidateOnRefresh: true,
       }
     });

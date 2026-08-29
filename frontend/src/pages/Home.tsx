@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import HeroSection from '../components/HeroSection';
 import StoryPreview from './sections/StoryPreview';
 import DailyLogPreview from './sections/DailyLogPreview';
@@ -9,17 +7,6 @@ import AchievementsPreview from './sections/AchievementsPreview';
 import ConnectPreview from './sections/ConnectPreview';
 
 export default function Home() {
-  const { hash } = useLocation();
-
-  useEffect(() => {
-    if (hash) {
-      const el = document.getElementById(hash.replace('#', ''));
-      if (el) setTimeout(() => el.scrollIntoView(), 100);
-    } else {
-      window.scrollTo(0, 0);
-    }
-  }, [hash]);
-
   return (
     <>
       {/* Hero */}

@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import apiClient from '../api/client';
 import OptimizedImage from '../components/OptimizedImage';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface LogItem {
   _id: string;
@@ -167,6 +171,9 @@ export default function LogDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const mobileContainerRef = useRef<HTMLDivElement>(null);
+  const mobileImageRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!id) {
       queueMicrotask(() => { setError(true); setLoading(false); });
@@ -194,6 +201,32 @@ export default function LogDetail() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [lightboxOpen, log]);
+
+  // Mobile scroll animation for the image
+  useEffect(() => {
+    if (!log?.images || log.images.length === 0 || !mobileContainerRef.current || !mobileImageRef.current) return;
+
+    let ctx = gsap.context(() => {
+      // Only apply on screens smaller than 1024px (lg breakpoint)
+      let mm = gsap.matchMedia();
+      
+      mm.add("(max-width: 1023px)", () => {
+        gsap.to(mobileImageRef.current, {
+          scale: 0.9,
+          y: 80, // Parallax push down
+          opacity: 0.8,
+          scrollTrigger: {
+            trigger: mobileContainerRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          }
+        });
+      });
+    }, mobileContainerRef);
+
+    return () => ctx.revert();
+  }, [log]);
 
   if (loading) {
     return (
@@ -243,8 +276,8 @@ export default function LogDetail() {
 
       {/* Left Side: Sticky Image Area (only if hasImage) */}
       {hasImage && (
-        <div className="w-full lg:w-1/2 lg:sticky lg:top-0 lg:h-screen lg:pt-[100px] lg:px-12 lg:pb-12 flex flex-col items-center justify-center">
-          <div className="relative w-full h-[45vh] sm:h-[55vh] lg:h-full max-h-[800px] bg-[var(--brown)] overflow-hidden lg:rounded-3xl lg:shadow-2xl">
+        <div ref={mobileContainerRef} className="w-full lg:w-1/2 lg:sticky lg:top-0 lg:h-screen lg:pt-[100px] lg:px-12 lg:pb-12 flex flex-col items-center justify-center">
+          <div ref={mobileImageRef} className="relative w-full h-[45vh] sm:h-[55vh] lg:h-full max-h-[800px] bg-[var(--brown)] overflow-hidden lg:rounded-3xl lg:shadow-2xl origin-top">
             {/* Back button (Desktop) */}
             <div className="hidden lg:block absolute top-6 left-6 z-30">
               <NavLink 

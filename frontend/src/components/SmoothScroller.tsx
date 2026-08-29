@@ -43,8 +43,16 @@ export default function SmoothScroller({ children }: { children: React.ReactNode
     // Prevent GSAP lag smoothing from conflicting with Lenis
     gsap.ticker.lagSmoothing(0);
 
+    // Global Resize Observer to automatically refresh ScrollTrigger on DOM height changes
+    // This perfectly solves issues where async data loading in child components breaks GSAP pin calculations
+    const resizeObserver = new ResizeObserver(() => {
+      ScrollTrigger.refresh();
+    });
+    resizeObserver.observe(document.body);
+
     return () => {
       // Cleanup to prevent StrictMode duplicates or memory leaks
+      resizeObserver.disconnect();
       gsap.ticker.remove((time) => {
         lenis.raf(time * 1000);
       });
@@ -56,12 +64,17 @@ export default function SmoothScroller({ children }: { children: React.ReactNode
   // Handle route changes by resetting scroll
   useEffect(() => {
     if (lenisRef.current) {
-      // If there's a hash, we let the Home page handle it or let Lenis scroll to it natively
-      if (!hash) {
+      if (hash) {
+        const el = document.getElementById(hash.replace('#', ''));
+        if (el) lenisRef.current.scrollTo(el, { offset: 0 });
+      } else {
         lenisRef.current.scrollTo(0, { immediate: true });
       }
     } else {
-      if (!hash) {
+      if (hash) {
+        const el = document.getElementById(hash.replace('#', ''));
+        if (el) el.scrollIntoView();
+      } else {
         window.scrollTo(0, 0);
       }
     }
