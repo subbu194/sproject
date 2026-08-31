@@ -91,7 +91,7 @@ export default function HeroSection() {
         scrollTrigger: {
           trigger: container.current,
           start: "top top",
-          end: "+=400%", // Slightly increased for the explicit sequence
+          end: "+=300%", // Decreased by 20% to reduce empty scrolling at the end
           pin: true,
           scrub: 1,
           anticipatePin: 1,
@@ -171,7 +171,7 @@ export default function HeroSection() {
       }, 8.5);
 
       // Pad out the end slightly before release
-      scrollTl.to({}, { duration: 1 }, 10);
+      scrollTl.to({}, { duration: 0.1 }, 10);
     });
 
     return () => {
@@ -222,13 +222,13 @@ export default function HeroSection() {
       <div className="hero-intro-wrapper absolute inset-0 z-10 pointer-events-none">
         <div className="hero-intro flex flex-col items-center justify-center h-full px-6 text-center opacity-0 translate-y-4 pointer-events-auto">
           <h1 className="font-['Playfair_Display'] tracking-wide">
-            <span 
+            <span
               className="block text-2xl font-medium text-white/95 sm:text-3xl md:text-4xl lg:text-5xl"
               style={{ textShadow: "1px 2px 8px rgba(0,0,0,0.7)" }}
             >
               Scroll to know about
             </span>
-            <span 
+            <span
               className="mt-2 lg:mt-3 block text-4xl font-bold italic text-[var(--gold)] sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ textShadow: "2px 4px 12px rgba(0,0,0,0.8)" }}
             >

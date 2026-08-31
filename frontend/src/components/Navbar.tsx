@@ -18,9 +18,10 @@ export default function Navbar() {
   const location = useLocation();
 
   const isHome = location.pathname === '/';
+  const isConnect = location.pathname === '/page/connect';
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
-    const threshold = isHome ? window.innerHeight * 4.9 : 10;
+    const threshold = isHome ? window.innerHeight * 4.9 : 20;
     const isScrolled = latest > threshold;
     if (scrolled !== isScrolled) {
       setScrolled(isScrolled);
@@ -36,38 +37,51 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // On home page: dark transparent glass (over hero video)
-  // On other pages: warm cream frosted glass (matches site light theme)
-  const isLight = !isHome;
+  // Theme logic:
+  // - Home: Starts dark (transparent), becomes light (cream) when scrolled past hero
+  // - Connect: Always dark (uses brown palette)
+  // - Others: Always light (cream)
+  const isLight = isHome ? scrolled : !isConnect;
 
-  const navBg = isLight
-    ? mobileOpen
+  let navBg = '';
+  if (isLight) {
+    navBg = mobileOpen
       ? 'rounded-2xl bg-[var(--cream)]/95 border-[var(--brown)]/12 shadow-[var(--brown)]/8'
-      : 'rounded-full bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8'
-    : mobileOpen
+      : 'rounded-full bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8';
+  } else if (isConnect) {
+    navBg = mobileOpen
+      ? 'rounded-2xl bg-[var(--brown)]/95 border-[var(--cream)]/10 shadow-black/20'
+      : (scrolled ? 'rounded-full bg-[var(--brown)]/90 border-[var(--cream)]/10 shadow-black/20' : 'rounded-full bg-transparent border-transparent shadow-none');
+  } else {
+    // Home Top
+    navBg = mobileOpen
       ? 'rounded-2xl bg-black/40 border-white/10 shadow-black/10'
       : 'rounded-full bg-black/20 border-white/10 shadow-black/10';
+  }
 
-  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 transition-all duration-300 backdrop-blur-md border shadow-lg ${navBg}`;
+  // To make the transition smoother, we apply transition classes to the nav wrapper
+  const navClasses = `fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 transition-all duration-500 backdrop-blur-md border ${
+    !isLight && !mobileOpen && isConnect && !scrolled ? '' : 'shadow-lg'
+  } ${navBg}`;
 
-  const logoTextClass = isLight ? 'text-[var(--brown)]' : 'text-white';
+  const logoTextClass = isLight ? 'text-[var(--brown)]' : 'text-[var(--cream)]';
   const mutedTextClasses = isLight
     ? 'text-[var(--brown)]/80 font-medium hover:text-[var(--gold)] hover:bg-[var(--brown)]/5'
-    : 'text-white/90 font-medium hover:text-[var(--gold)] hover:bg-white/10';
+    : 'text-[var(--cream)]/90 font-medium hover:text-[var(--gold)] hover:bg-[var(--cream)]/10';
   const activeTextClasses = isLight
     ? 'text-[var(--gold)] font-bold bg-[var(--gold)]/8'
-    : 'text-[var(--gold)] font-bold bg-white/10';
+    : 'text-[var(--gold)] font-bold bg-[var(--cream)]/10';
   const hamburgerClass = isLight
     ? 'text-[var(--brown)] hover:bg-[var(--brown)]/8'
-    : 'text-white hover:bg-white/10';
+    : 'text-[var(--cream)] hover:bg-[var(--cream)]/10';
   const dropdownItemBase = isLight
     ? 'hover:bg-[var(--brown)]/6 hover:text-[var(--gold)]'
-    : 'hover:bg-white/10 hover:text-[var(--gold)]';
+    : 'hover:bg-[var(--cream)]/10 hover:text-[var(--gold)]';
   const dropdownItemActive = isLight
     ? 'bg-[var(--gold)]/8 text-[var(--gold)]'
-    : 'bg-white/10 text-[var(--gold)]';
-  const dropdownItemInactive = isLight ? 'text-[var(--brown)]/80' : 'text-white/90';
-  const dropdownBorder = isLight ? 'border-[var(--brown)]/10' : 'border-white/10';
+    : 'bg-[var(--cream)]/10 text-[var(--gold)]';
+  const dropdownItemInactive = isLight ? 'text-[var(--brown)]/80' : 'text-[var(--cream)]/90';
+  const dropdownBorder = isLight ? 'border-[var(--brown)]/10' : 'border-[var(--cream)]/10';
 
   return (
     <>

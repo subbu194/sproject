@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
 import OptimizedImage from '../../components/OptimizedImage';
 import gsap from 'gsap';
@@ -18,6 +18,7 @@ interface TimelineEntry {
 }
 
 export default function StoryPreview() {
+  const navigate = useNavigate();
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
@@ -75,7 +76,7 @@ export default function StoryPreview() {
       scrollTrigger: {
         trigger: desktopContainerRef.current,
         start: "top top",
-        end: `+=${totalItems * 150}%`, // Increased scroll distance to make progression feel more deliberate
+        end: `+=${totalItems * 80}%`, // Reduced scroll distance
         pin: true,
         scrub: 1,
         anticipatePin: 1,
@@ -91,7 +92,7 @@ export default function StoryPreview() {
       scrollTrigger: {
         trigger: desktopContainerRef.current,
         start: "top top",
-        end: `+=${totalItems * 150}%`,
+        end: `+=${totalItems * 80}%`,
         scrub: true,
       }
     });
@@ -162,7 +163,7 @@ export default function StoryPreview() {
               {/* Text Items */}
               <div className="relative ml-8 lg:ml-12 h-[120px] lg:h-[300px] w-full">
                 {items.map((entry, i) => (
-                  <div key={entry._id} className={`desktop-text item-${i} absolute top-1/2 flex w-full -translate-y-1/2 flex-col`}>
+                  <div key={entry._id} onClick={() => navigate('/page/story')} className={`desktop-text item-${i} absolute top-1/2 flex w-full -translate-y-1/2 flex-col cursor-pointer`}>
                     <div className="desktop-text-elem text-xs lg:text-sm font-semibold uppercase tracking-widest text-[var(--gold)]">
                       {entry.year}
                     </div>
@@ -183,7 +184,7 @@ export default function StoryPreview() {
                 {items.map((entry, i) => {
                   const hasImage = entry.images && entry.images.length > 0;
                   return (
-                    <div key={entry._id} className={`desktop-img item-${i} absolute inset-0 overflow-hidden rounded-2xl ${hasImage ? 'shadow-2xl shadow-[var(--brown)]/15 border border-[var(--gold)]/20 bg-white/30 backdrop-blur-sm p-2 lg:p-3' : 'pointer-events-none'}`}>
+                    <div key={entry._id} onClick={() => hasImage && navigate('/page/story')} className={`desktop-img item-${i} absolute inset-0 overflow-hidden rounded-2xl ${hasImage ? 'cursor-pointer shadow-2xl shadow-[var(--brown)]/15 border border-[var(--gold)]/20 bg-white/30 backdrop-blur-sm p-2 lg:p-3' : 'pointer-events-none'}`}>
                       {hasImage && (
                         <div className="relative h-full w-full overflow-hidden rounded-xl">
                           <OptimizedImage

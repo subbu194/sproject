@@ -1,9 +1,9 @@
 import HeroSection from '../components/HeroSection';
 import StoryPreview from './sections/StoryPreview';
 import DailyLogPreview from './sections/DailyLogPreview';
-import ThoughtsPreview from './sections/ThoughtsPreview';
+// import ThoughtsPreview from './sections/ThoughtsPreview';
 import PressPreview from './sections/PressPreview';
-import AchievementsPreview from './sections/AchievementsPreview';
+// import AchievementsPreview from './sections/AchievementsPreview';
 import ConnectPreview from './sections/ConnectPreview';
 
 export default function Home() {
@@ -18,9 +18,9 @@ export default function Home() {
       <div >
         <StoryPreview />
         <DailyLogPreview />
-        <ThoughtsPreview />
+        {/* <ThoughtsPreview /> */}
         <PressPreview />
-        <AchievementsPreview />
+        {/* <AchievementsPreview /> */}
         <ConnectPreview />
       </div>
     </>

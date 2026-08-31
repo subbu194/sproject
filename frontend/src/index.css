@@ -283,3 +283,148 @@ h1, h2, h3, h4, h5, h6 {
 .mobile-menu-enter {
   animation: revealUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Press Carousel — Homepage Press & Media section
+   ───────────────────────────────────────────────────────────────────── */
+
+.press-carousel-section {
+  background: var(--warm-white);
+}
+
+/* The 3-card flex row */
+.press-cards-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 2vw, 3rem); /* larger gap on big screens, smaller on mobile */
+  padding: 0 1rem;
+}
+
+/* Side card slots */
+.press-slot-side {
+  flex: 0 0 clamp(100px, 30vw, 400px);
+  max-width: 400px;
+  cursor: pointer;
+}
+
+/* Center card slot */
+.press-slot-center {
+  flex: 0 0 clamp(260px, 60vw, 900px); /* Massive center card for desktop */
+  max-width: 900px;
+  z-index: 10;
+}
+
+/* ── Card visuals ── */
+.press-card-shadow {
+  box-shadow:
+    0 10px 40px rgba(44, 26, 14, 0.08),
+    0 2px 10px rgba(44, 26, 14, 0.04);
+  background: var(--card-bg);
+  border: 1px solid rgba(44, 26, 14, 0.06);
+  transition: box-shadow 0.3s ease;
+}
+
+.press-card-shadow:hover {
+  box-shadow:
+    0 20px 50px rgba(200, 150, 42, 0.12),
+    0 4px 16px rgba(44, 26, 14, 0.06);
+}
+
+/* Center card image area */
+.press-center-image-wrap {
+  aspect-ratio: 16 / 9;
+  min-height: 200px;
+  max-height: 500px;
+}
+.press-side-image-wrap {
+  aspect-ratio: 4 / 3;
+}
+
+/* Prevent text selection while dragging */
+.press-carousel-stage {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y; /* Allow vertical pan; horizontal handled by JS */
+  overflow: visible; /* allow items to flow to edges */
+}
+
+/* Side card base — transformed by GSAP */
+.press-card-side {
+  transform-origin: center center;
+  background: var(--card-bg);
+  border: 1px solid rgba(44, 26, 14, 0.06);
+  box-shadow:
+    0 4px 16px rgba(44, 26, 14, 0.06),
+    0 2px 8px rgba(44, 26, 14, 0.03);
+  transition: box-shadow 0.3s ease;
+}
+
+.press-card-side:hover {
+  box-shadow:
+    0 10px 30px rgba(200, 150, 42, 0.12),
+    0 4px 12px rgba(44, 26, 14, 0.05);
+}
+
+/* ── View Article button ── */
+.press-view-article-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(200, 150, 42, 0.45) !important;
+}
+
+.press-view-article-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Responsive tweaks ── */
+
+/* Laptop (1024–1279) */
+@media (max-width: 1279px) {
+  .press-slot-side {
+    flex-basis: clamp(100px, 25vw, 300px);
+  }
+  .press-slot-center {
+    flex-basis: clamp(260px, 55vw, 700px);
+  }
+}
+
+/* Tablet (768–1023) */
+@media (max-width: 1023px) {
+  .press-slot-side {
+    flex-basis: clamp(80px, 20vw, 220px);
+  }
+  .press-slot-center {
+    flex-basis: clamp(240px, 60vw, 550px);
+  }
+  .press-center-image-wrap {
+    max-height: 350px;
+  }
+}
+
+/* Mobile (<768) */
+@media (max-width: 767px) {
+  .press-slot-side {
+    flex-basis: clamp(60px, 15vw, 120px);
+  }
+  .press-slot-center {
+    flex-basis: clamp(220px, 75vw, 380px);
+  }
+  .press-center-image-wrap {
+    max-height: 220px;
+  }
+  .press-cards-row {
+    gap: clamp(0.5rem, 2vw, 1rem);
+    padding: 0 0.5rem;
+  }
+}
+
+/* Very small (<375px) */
+@media (max-width: 374px) {
+  .press-slot-side {
+    flex-basis: 45px;
+  }
+  .press-slot-center {
+    flex-basis: calc(100vw - 120px);
+  }
+}

@@ -89,14 +89,12 @@ function formatBody(text: string): React.ReactNode[] {
 
 function Lightbox({
   images,
-  imageBlurUrls,
   currentIndex,
   onClose,
   onNext,
   onPrev,
 }: {
   images: string[];
-  imageBlurUrls?: string[];
   currentIndex: number;
   onClose: () => void;
   onNext: () => void;
@@ -393,7 +391,6 @@ export default function LogDetail() {
       {lightboxOpen && log.images && (
         <Lightbox
           images={log.images}
-          imageBlurUrls={log.imageBlurUrls}
           currentIndex={currentIndex}
           onClose={() => setLightboxOpen(false)}
           onNext={() => setCurrentIndex((prev) => (prev + 1) % log.images!.length)}

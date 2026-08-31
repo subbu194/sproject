@@ -10,6 +10,7 @@ interface PressItem {
   outlet: string;
   title: string;
   year: string;
+  link?: string;
   url?: string;
   images?: string[];
   imageBlurUrls?: string[];
@@ -18,9 +19,13 @@ interface PressItem {
 function PressCard({ item, index }: { item: PressItem; index: number }) {
   const hasImage = item.images && item.images.length > 0;
 
+  const href = item.link || item.url || '#';
+
   return (
-    <NavLink
-      to={`/page/press/${item._id}`}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className="block group relative flex flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
       style={{
         backgroundColor: 'white',
@@ -88,17 +93,16 @@ function PressCard({ item, index }: { item: PressItem; index: number }) {
             className="text-xs font-bold transition-colors duration-200 group-hover:text-[var(--gold)]"
             style={{ color: 'var(--muted)' }}
           >
-            View Details →
+            Read Article ↗
           </span>
         </div>
       </div>
 
-      {/* Gold accent line bottom on hover */}
       <div
         className="absolute bottom-0 left-0 h-0.5 w-0 rounded-full transition-all duration-500 group-hover:w-full"
         style={{ background: 'linear-gradient(90deg, var(--gold), var(--gold-light))' }}
       />
-    </NavLink>
+    </a>
   );
 }
 

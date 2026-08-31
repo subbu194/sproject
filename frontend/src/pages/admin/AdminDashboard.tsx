@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../../api/client';
 import { setAdminToken } from '../../api/client';
 import { 
-  BookOpen, CalendarDays, Lightbulb, Link2, 
+  BookOpen, CalendarDays, /*Lightbulb,*/ Link2, 
   MessageSquare, Newspaper, Trophy, LogOut, 
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
   X, ImagePlus, Loader2, Search, Scissors
@@ -50,9 +51,9 @@ interface ContactEntry { _id: string; name: string; email: string; message: stri
 const SECTIONS = [
   { name: 'Story / Timeline', icon: BookOpen },
   { name: 'Daily Log', icon: CalendarDays },
-  { name: 'Thoughts', icon: Lightbulb },
+  // { name: 'Thoughts', icon: Lightbulb },
   { name: 'Press', icon: Newspaper },
-  { name: 'Achievements', icon: Trophy },
+  // { name: 'Achievements', icon: Trophy },
   { name: 'Connect', icon: Link2 },
   { name: 'Contact Submissions', icon: MessageSquare },
 ] as const;
@@ -417,9 +418,9 @@ export default function AdminDashboard() {
         <div className="mx-auto max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
           {activeSection === 'Story / Timeline' && <TimelineManager searchQuery={globalSearch} />}
           {activeSection === 'Daily Log' && <DailyLogManager searchQuery={globalSearch} />}
-          {activeSection === 'Thoughts' && <ThoughtsManager searchQuery={globalSearch} />}
+          {/* {activeSection === 'Thoughts' && <ThoughtsManager searchQuery={globalSearch} />} */}
           {activeSection === 'Press' && <PressManager searchQuery={globalSearch} />}
-          {activeSection === 'Achievements' && <AchievementsManager searchQuery={globalSearch} />}
+          {/* {activeSection === 'Achievements' && <AchievementsManager searchQuery={globalSearch} />} */}
           {activeSection === 'Connect' && <ConnectManager />}
           {activeSection === 'Contact Submissions' && <ContactsViewer searchQuery={globalSearch} />}
         </div>
@@ -631,7 +632,7 @@ function DailyLogManager({ searchQuery }: { searchQuery: string }) {
   );
 }
 
-function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
+export function ThoughtsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Thought[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -836,7 +837,7 @@ function PressManager({ searchQuery }: { searchQuery: string }) {
   );
 }
 
-function AchievementsManager({ searchQuery }: { searchQuery: string }) {
+export function AchievementsManager({ searchQuery }: { searchQuery: string }) {
   const [items, setItems] = useState<Achievement[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

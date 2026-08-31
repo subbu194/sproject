@@ -117,11 +117,6 @@ export default function LogEntry({
               loading="lazy"
               imgClassName="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            {images.length > 1 && (
-              <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur-md">
-                +{images.length - 1} MORE
-              </div>
-            )}
           </div>
         ) : (
           <div className="aspect-[4/3] w-full shrink-0 rounded-t-[2rem] bg-[var(--cream)]" />
@@ -169,11 +164,6 @@ export default function LogEntry({
               sizes="(max-width: 640px) 192px, 224px"
               imgClassName="w-full h-auto max-h-40 transition-transform duration-300 group-hover:scale-105"
             />
-            {images.length > 1 && (
-              <div className="bg-[var(--warm-white)] px-2 py-1 text-center text-xs font-medium text-[var(--muted)]">
-                +{images.length - 1} more {images.length === 2 ? 'image' : 'images'}
-              </div>
-            )}
           </div>
         )}
         

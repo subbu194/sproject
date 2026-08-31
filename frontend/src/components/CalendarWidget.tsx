@@ -66,28 +66,35 @@ export default function CalendarWidget({ entryDates, onDateSelect }: CalendarWid
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--gold)]/15 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
+    <div className="relative overflow-hidden rounded-[2rem] border-2 border-white/60 bg-white/60 p-6 sm:p-8 shadow-2xl shadow-[var(--brown)]/5 backdrop-blur-2xl">
+      {/* Decorative gradient orb */}
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-[var(--gold)]/20 to-[var(--gold-light)]/20 blur-3xl" />
+      
+      <div className="relative z-10 mb-6 flex items-center justify-between">
         <button 
           onClick={goToPrevMonth}
-          className="p-1 rounded-lg text-[var(--muted)] hover:bg-[var(--warm-white)] hover:text-[var(--brown)] transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[var(--muted)] shadow-sm transition-all hover:bg-white hover:text-[var(--gold)] hover:shadow-md"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <div className="text-sm font-bold text-[var(--brown)]">{monthName}</div>
+        <div className="font-['Playfair_Display'] text-lg font-bold tracking-wide text-[var(--brown)]">
+          {monthName}
+        </div>
         <button 
           onClick={goToNextMonth}
-          className="p-1 rounded-lg text-[var(--muted)] hover:bg-[var(--warm-white)] hover:text-[var(--brown)] transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[var(--muted)] shadow-sm transition-all hover:bg-white hover:text-[var(--gold)] hover:shadow-md"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+      
+      <div className="relative z-10 grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase tracking-widest text-[var(--muted)]/70">
         {dayHeaders.map((d, i) => (
-          <div key={i}>{d}</div>
+          <div key={i} className="pb-2">{d}</div>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-7 gap-1">
+      
+      <div className="relative z-10 grid grid-cols-7 gap-2">
         {weeks.flat().map((day, i) => {
           if (day === null) return <div key={i} />;
 
@@ -99,10 +106,12 @@ export default function CalendarWidget({ entryDates, onDateSelect }: CalendarWid
               key={i}
               onClick={() => handleDayClick(day)}
               disabled={!hasEntry}
-              className={`flex h-8 w-full items-center justify-center rounded-lg text-xs font-medium transition
-                ${isToday ? 'border-2 border-[var(--gold)] font-bold text-[var(--gold)]' : ''}
-                ${hasEntry && !isToday ? 'bg-[var(--gold)]/15 font-semibold text-[var(--gold)] cursor-pointer hover:bg-[var(--gold)]/25' : ''}
-                ${!isToday && !hasEntry ? 'text-[var(--muted)] cursor-default' : ''}
+              className={`relative flex aspect-square w-full items-center justify-center rounded-xl text-xs font-bold transition-all duration-300
+                ${isToday && !hasEntry ? 'border-2 border-[var(--gold)]/40 text-[var(--gold)]' : ''}
+                ${isToday && hasEntry ? 'border-2 border-[var(--gold)] bg-[var(--gold)]/10 text-[var(--gold)] hover:bg-[var(--gold)]/20' : ''}
+                ${hasEntry && !isToday ? 'bg-gradient-to-br from-[var(--gold)] to-[var(--gold-light)] text-white shadow-lg shadow-[var(--gold)]/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[var(--gold)]/40' : ''}
+                ${!isToday && !hasEntry ? 'text-[var(--muted)] hover:bg-white/50' : ''}
+                ${!hasEntry ? 'cursor-default' : 'cursor-pointer'}
               `}
             >
               {day}
@@ -110,9 +119,16 @@ export default function CalendarWidget({ entryDates, onDateSelect }: CalendarWid
           );
         })}
       </div>
+      
       {entryDaysMap.size > 0 && (
-        <div className="mt-3 pt-3 border-t border-[var(--brown)]/5 text-center text-xs text-[var(--muted)]">
-          {entryDaysMap.size} {entryDaysMap.size === 1 ? 'entry' : 'entries'} this month
+        <div className="relative z-10 mt-6 pt-5 border-t border-[var(--brown)]/10 text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--gold)]/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--gold)]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--gold)] opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--gold)]"></span>
+            </span>
+            {entryDaysMap.size} {entryDaysMap.size === 1 ? 'Log' : 'Logs'} This Month
+          </span>
         </div>
       )}
     </div>

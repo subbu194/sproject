@@ -6,7 +6,6 @@ import LogDetail from './pages/LogDetail';
 import Thoughts from './pages/Thoughts';
 import ThoughtDetail from './pages/ThoughtDetail';
 import Press from './pages/Press';
-import PressDetail from './pages/PressDetail';
 import Achievements from './pages/Achievements';
 import AchievementDetail from './pages/AchievementDetail';
 import Connect from './pages/Connect';
@@ -27,7 +26,6 @@ export default function AppRouter() {
       <Route path="/page/thoughts" element={<Thoughts />} />
       <Route path="/page/thoughts/:id" element={<ThoughtDetail />} />
       <Route path="/page/press" element={<Press />} />
-      <Route path="/page/press/:id" element={<PressDetail />} />
       <Route path="/page/achievements" element={<Achievements />} />
       <Route path="/page/achievements/:id" element={<AchievementDetail />} />
       <Route path="/page/connect" element={<Connect />} />
