@@ -45,15 +45,15 @@ function mod(n: number, m: number) {
 // Shared Card Content
 // ─────────────────────────────────────────────────────────────────────────────
 
-function PressCardContent({ item, isCenter, onClick }: { item: PressItem; isCenter: boolean; onClick?: () => void }) {
+function PressCardContent({ item, isCenter, onClick }: { item: PressItem; isCenter: boolean; onClick?: (e: React.MouseEvent) => void }) {
   const href = item.link || item.url;
   const image = item.images?.[0];
 
   return (
     <div
       className={`group flex flex-col overflow-hidden rounded-[28px] transition-all duration-300 ease-out h-full ${isCenter ? 'hover:-translate-y-2 hover:shadow-2xl' : ''}`}
-      onClick={() => {
-        if (onClick) onClick();
+      onClick={(e) => {
+        if (onClick) onClick(e);
         else if (href) window.open(href, '_blank', 'noopener,noreferrer');
       }}
       style={{
@@ -114,6 +114,7 @@ function PressCardContent({ item, isCenter, onClick }: { item: PressItem; isCent
 function DesktopCarousel({ items, activeIdx, navigate, jumpTo, isDraggingRef, draggedFarRef, isMobile }: any) {
   const count = items.length;
   const dragStartXRef = useRef(0);
+  const clickStartRef = useRef({ x: 0, y: 0, time: 0 });
 
   const spread = isMobile ? 180 : 260;
   const zDepth = isMobile ? 120 : 180;
@@ -170,6 +171,9 @@ function DesktopCarousel({ items, activeIdx, navigate, jumpTo, isDraggingRef, dr
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
+            onPointerDown={(e) => {
+              clickStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+            }}
             onDragStart={(_, info) => {
               isDraggingRef.current = true;
               draggedFarRef.current = false;
@@ -204,8 +208,18 @@ function DesktopCarousel({ items, activeIdx, navigate, jumpTo, isDraggingRef, dr
             <PressCardContent 
               item={item} 
               isCenter={isCenter} 
-              onClick={() => {
-                if (draggedFarRef.current) return;
+              onClick={(e) => {
+                const dx = Math.abs(e.clientX - clickStartRef.current.x);
+                const dy = Math.abs(e.clientY - clickStartRef.current.y);
+                const dt = Date.now() - clickStartRef.current.time;
+                
+                // If it moved more than 10px or took longer than 500ms, it's a drag or long-press, not a click
+                if (dx > 10 || dy > 10 || dt > 500) return;
+
+                const href = item.link || item.url;
+                if (href && isCenter) {
+                  window.open(href, '_blank', 'noopener,noreferrer');
+                }
               }}
             />
           </motion.div>

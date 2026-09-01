@@ -17,6 +17,70 @@ interface TimelineEntry {
   imageBlurUrls?: string[];
 }
 
+function StoryImageGallery({ entry, openLightbox }: { entry: TimelineEntry; openLightbox: (imgs: string[], idx: number) => void }) {
+  const [autoIndex, setAutoIndex] = useState(0);
+
+  useEffect(() => {
+    if (!entry.images || entry.images.length <= 1) return;
+    const timer = setInterval(() => {
+      setAutoIndex((prev) => (prev + 1) % entry.images!.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [entry.images]);
+
+  if (!entry.images || entry.images.length === 0) return null;
+
+  const images = entry.images;
+  const total = images.length;
+  const maxThumbs = Math.min(3, total - 1);
+  const thumbs = Array.from({ length: maxThumbs }, (_, j) => (autoIndex + j + 1) % total);
+
+  return (
+    <div className="group relative overflow-hidden rounded-2xl shadow-lg shadow-[var(--brown)]/8">
+      {/* Clickable overlay hint */}
+      <button
+        onClick={() => openLightbox(images, autoIndex)}
+        className="absolute inset-0 z-10 flex items-end justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        aria-label="View images"
+      >
+        <span className="rounded-full bg-black/50 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+          {total > 1 ? `View all ${total} photos` : 'View photo'}
+        </span>
+      </button>
+      <OptimizedImage
+        src={images[autoIndex]}
+        blurSrc={entry.imageBlurUrls?.[autoIndex]}
+        alt={entry.title}
+        fit="cover"
+        loading="lazy"
+        imgClassName="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] cursor-pointer"
+      />
+      {/* Thumbnail strip bottom-right — all screens */}
+      {total > 1 && (
+        <div className="absolute bottom-3 right-3 z-20 flex gap-1.5">
+          {thumbs.map((idx) => (
+            <button
+              key={idx}
+              onClick={(e) => { e.stopPropagation(); openLightbox(images, idx); }}
+              className="h-10 w-10 overflow-hidden rounded-lg border-2 border-white/70 shadow-md transition-transform hover:scale-105"
+            >
+              <OptimizedImage src={images[idx]} blurSrc={entry.imageBlurUrls?.[idx]} alt="" fit="cover" loading="lazy" imgClassName="h-full w-full object-cover" />
+            </button>
+          ))}
+          {total > 4 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); openLightbox(images, (autoIndex + 4) % total); }}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-white/70 bg-black/60 text-xs font-bold text-white shadow-md backdrop-blur-sm hover:bg-black/80 transition-colors"
+            >
+              +{total - 4}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Story() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,48 +313,7 @@ export default function Story() {
                     {/* IMAGE PANEL */}
                     <div className={`entry-img w-full ${isEven ? 'lg:pr-8' : 'lg:order-3 lg:pl-8'}`}>
                       {hasImage ? (
-                        <div className="group relative overflow-hidden rounded-2xl shadow-lg shadow-[var(--brown)]/8">
-                          {/* Clickable overlay hint */}
-                          <button
-                            onClick={() => openLightbox(entry.images!, 0)}
-                            className="absolute inset-0 z-10 flex items-end justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            aria-label="View images"
-                          >
-                            <span className="rounded-full bg-black/50 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-                              {entry.images!.length > 1 ? `View all ${entry.images!.length} photos` : 'View photo'}
-                            </span>
-                          </button>
-                          <OptimizedImage
-                            src={entry.images![0]}
-                            blurSrc={entry.imageBlurUrls?.[0]}
-                            alt={entry.title}
-                            fit="cover"
-                            loading="lazy"
-                            imgClassName="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] cursor-pointer"
-                          />
-                          {/* Thumbnail strip bottom-right — all screens */}
-                          {entry.images!.length > 1 && (
-                            <div className="absolute bottom-3 right-3 z-20 flex gap-1.5">
-                              {entry.images!.slice(1, 4).map((img, j) => (
-                                <button
-                                  key={j}
-                                  onClick={() => openLightbox(entry.images!, j + 1)}
-                                  className="h-10 w-10 overflow-hidden rounded-lg border-2 border-white/70 shadow-md transition-transform hover:scale-105"
-                                >
-                                  <OptimizedImage src={img} blurSrc={entry.imageBlurUrls?.[j + 1]} alt="" fit="cover" loading="lazy" imgClassName="h-full w-full object-cover" />
-                                </button>
-                              ))}
-                              {entry.images!.length > 4 && (
-                                <button
-                                  onClick={() => openLightbox(entry.images!, 4)}
-                                  className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-white/70 bg-black/60 text-xs font-bold text-white shadow-md backdrop-blur-sm hover:bg-black/80 transition-colors"
-                                >
-                                  +{entry.images!.length - 4}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <StoryImageGallery entry={entry} openLightbox={openLightbox} />
                       ) : (
                         <div className="flex aspect-[4/3] w-full items-center justify-center rounded-2xl border border-[var(--gold)]/10 bg-gradient-to-br from-[var(--cream)] via-[var(--card-bg)] to-[var(--cream)]">
                           <div className="text-center">

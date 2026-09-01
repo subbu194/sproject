@@ -169,6 +169,16 @@ export default function LogDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const [autoIndex, setAutoIndex] = useState(0);
+
+  useEffect(() => {
+    if (!log?.images || log.images.length <= 1) return;
+    const timer = setInterval(() => {
+      setAutoIndex((prev) => (prev + 1) % log.images!.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [log]);
+
   const mobileContainerRef = useRef<HTMLDivElement>(null);
   const mobileImageRef = useRef<HTMLDivElement>(null);
 
@@ -288,8 +298,9 @@ export default function LogDetail() {
             </div>
 
             <OptimizedImage
-              src={log.images![0]}
-              blurSrc={log.imageBlurUrls?.[0]}
+              key={autoIndex}
+              src={log.images![autoIndex]}
+              blurSrc={log.imageBlurUrls?.[autoIndex]}
               alt={log.title}
               fit="cover"
               loading="eager"
@@ -299,7 +310,7 @@ export default function LogDetail() {
             />
           <div 
             className="absolute inset-0 cursor-pointer" 
-            onClick={() => { setLightboxOpen(true); setCurrentIndex(0); }} 
+            onClick={() => { setLightboxOpen(true); setCurrentIndex(autoIndex); }} 
           />
           
           {/* Subtle gradient for aesthetics */}
@@ -308,18 +319,21 @@ export default function LogDetail() {
           {/* Corner Thumbnails */}
           {log.images!.length > 1 && (
             <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20 flex gap-2">
-              {log.images!.slice(1, 4).map((img, j) => (
-                <button
-                  key={j}
-                  onClick={() => { setLightboxOpen(true); setCurrentIndex(j + 1); }}
-                  className="h-14 w-20 sm:h-16 sm:w-24 lg:h-20 lg:w-28 overflow-hidden rounded-xl border-2 border-white/20 shadow-xl transition-all hover:scale-105 hover:border-white/60"
-                >
-                  <OptimizedImage src={img} blurSrc={log.imageBlurUrls?.[j + 1]} alt="" fit="cover" loading="lazy" className="h-full" imgClassName="h-full w-full object-cover" />
-                </button>
-              ))}
+              {Array.from({ length: Math.min(3, log.images!.length - 1) }).map((_, j) => {
+                const idx = (autoIndex + j + 1) % log.images!.length;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => { setLightboxOpen(true); setCurrentIndex(idx); }}
+                    className="h-14 w-20 sm:h-16 sm:w-24 lg:h-20 lg:w-28 overflow-hidden rounded-xl border-2 border-white/20 shadow-xl transition-all hover:scale-105 hover:border-white/60"
+                  >
+                    <OptimizedImage src={log.images![idx]} blurSrc={log.imageBlurUrls?.[idx]} alt="" fit="cover" loading="lazy" className="h-full" imgClassName="h-full w-full object-cover" />
+                  </button>
+                );
+              })}
               {log.images!.length > 4 && (
                 <button
-                  onClick={() => { setLightboxOpen(true); setCurrentIndex(4); }}
+                  onClick={() => { setLightboxOpen(true); setCurrentIndex((autoIndex + 4) % log.images!.length); }}
                   className="flex h-14 w-20 sm:h-16 sm:w-24 lg:h-20 lg:w-28 items-center justify-center rounded-xl border-2 border-white/20 bg-black/50 text-sm font-bold text-white shadow-xl backdrop-blur-sm transition-colors hover:bg-black/70 hover:border-white/60"
                 >
                   +{log.images!.length - 4}
