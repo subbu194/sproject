@@ -28,14 +28,27 @@ export default function Navbar() {
     }
   });
 
-  // Close mobile menu on escape
+  // Close mobile menu on escape and handle resize
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileOpen(false);
     };
+    
+    const handleResize = () => {
+      const threshold = isHome ? window.innerHeight * 4.9 : 20;
+      const isScrolled = window.scrollY > threshold;
+      if (scrolled !== isScrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isHome, scrolled]);
 
   // Theme logic:
   // - Home: Starts dark (transparent), becomes light (cream) when scrolled past hero
@@ -47,18 +60,18 @@ export default function Navbar() {
   if (isLight) {
     navBg = mobileOpen
       ? 'rounded-2xl bg-[var(--cream)]/95 border-[var(--brown)]/12 shadow-[var(--brown)]/8'
-      : 'rounded-full bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8';
+      : 'rounded-[26px] bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8';
   } else if (isConnect) {
     navBg = mobileOpen
       ? 'rounded-2xl bg-[#3D2616]/95 border-[var(--gold)]/20 shadow-2xl shadow-black/40'
       : (scrolled 
-          ? 'rounded-full bg-[#3D2616]/80 border-[var(--gold)]/20 shadow-lg shadow-black/30' 
-          : 'rounded-full bg-transparent border-transparent shadow-none');
+          ? 'rounded-[26px] bg-[#3D2616]/80 border-[var(--gold)]/20 shadow-lg shadow-black/30' 
+          : 'rounded-[26px] bg-transparent border-transparent shadow-none');
   } else {
     // Home Top
     navBg = mobileOpen
       ? 'rounded-2xl bg-black/40 border-white/10 shadow-black/10'
-      : 'rounded-full bg-black/20 border-white/10 shadow-black/10';
+      : 'rounded-[26px] bg-black/20 border-white/10 shadow-black/10';
   }
 
   // To make the transition smoother, we apply transition classes to the nav wrapper
@@ -160,7 +173,7 @@ export default function Navbar() {
             />
             <span
               className={`absolute left-0 block h-0.5 w-5 bg-current transition-all duration-300 ${
-                mobileOpen ? 'top-2.5 -rotate-45' : 'top-4.5'
+                mobileOpen ? 'top-2.5 -rotate-45' : 'top-[18px]'
               }`}
             />
           </div>

@@ -19,14 +19,25 @@ interface TimelineEntry {
 
 function StoryImageGallery({ entry, openLightbox }: { entry: TimelineEntry; openLightbox: (imgs: string[], idx: number) => void }) {
   const [autoIndex, setAutoIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!entry.images || entry.images.length <= 1) return;
+    const observer = new IntersectionObserver(
+      ([e]) => setIsVisible(e.isIntersecting),
+      { threshold: 0.1 }
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!entry.images || entry.images.length <= 1 || !isVisible) return;
     const timer = setInterval(() => {
       setAutoIndex((prev) => (prev + 1) % entry.images!.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [entry.images]);
+  }, [entry.images, isVisible]);
 
   if (!entry.images || entry.images.length === 0) return null;
 
@@ -36,7 +47,7 @@ function StoryImageGallery({ entry, openLightbox }: { entry: TimelineEntry; open
   const thumbs = Array.from({ length: maxThumbs }, (_, j) => (autoIndex + j + 1) % total);
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl shadow-lg shadow-[var(--brown)]/8">
+    <div ref={containerRef} className="group relative overflow-hidden rounded-2xl shadow-lg shadow-[var(--brown)]/8">
       {/* Clickable overlay hint */}
       <button
         onClick={() => openLightbox(images, autoIndex)}

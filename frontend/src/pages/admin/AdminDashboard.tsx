@@ -7,7 +7,7 @@ import {
   BookOpen, CalendarDays, /*Lightbulb,*/ Link2, 
   MessageSquare, Newspaper, Trophy, LogOut, 
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
-  X, ImagePlus, Loader2, Search, Scissors
+  X, ImagePlus, Loader2, Search, Scissors, Settings
 } from 'lucide-react';
 import OptimizedImage from '../../components/OptimizedImage';
 import LocalImageCropModal from '../../components/crop/LocalImageCropModal';
@@ -56,6 +56,7 @@ const SECTIONS = [
   // { name: 'Achievements', icon: Trophy },
   { name: 'Connect', icon: Link2 },
   { name: 'Contact Submissions', icon: MessageSquare },
+  { name: 'Site Settings', icon: Settings },
 ] as const;
 
 /* ─── Reusable Components ─── */
@@ -423,6 +424,7 @@ export default function AdminDashboard() {
           {/* {activeSection === 'Achievements' && <AchievementsManager searchQuery={globalSearch} />} */}
           {activeSection === 'Connect' && <ConnectManager />}
           {activeSection === 'Contact Submissions' && <ContactsViewer searchQuery={globalSearch} />}
+          {activeSection === 'Site Settings' && <SettingsManager />}
         </div>
       </main>
     </div>
@@ -1022,6 +1024,73 @@ function ContactsViewer({ searchQuery }: { searchQuery: string }) {
           ))}
         </div>
       )}
+    </Panel>
+  );
+}
+
+export function SettingsManager() {
+  const [form, setForm] = useState({ heroVideoUrl: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    apiClient.get('/settings')
+      .then((res) => {
+        const data = extractData(res, { heroVideoUrl: '' });
+        setForm({ heroVideoUrl: data.heroVideoUrl || '' });
+      })
+      .catch(() => {
+        setMessage({ text: 'Failed to load settings', type: 'error' });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await apiClient.put('/settings', form);
+      const data = extractData(res);
+      setForm({ heroVideoUrl: data.heroVideoUrl || '' });
+      setMessage({ text: 'Settings saved successfully!', type: 'success' });
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: 'Failed to save settings', type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="py-16 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-[var(--gold)]" /></div>;
+  }
+
+  return (
+    <Panel title="Global Site Settings" description="Manage core configuration like the Hero section video.">
+      <div className="space-y-6 max-w-2xl">
+        <FormInput 
+          label="Hero Video URL (.mp4)" 
+          value={form.heroVideoUrl} 
+          onChange={(v) => setForm({ ...form, heroVideoUrl: v })} 
+          placeholder="https://cdn.example.com/video.mp4" 
+        />
+        <p className="text-xs text-[var(--muted)] -mt-4 ml-1">
+          Provide a direct link to an optimized .mp4 file. If left blank, the default hardcoded video will play.
+        </p>
+
+        {message && (
+          <div className={`p-4 rounded-xl text-sm font-bold ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
+            {message.text}
+          </div>
+        )}
+
+        <div className="flex justify-end pt-4 border-t border-[var(--brown)]/5">
+          <Btn onClick={save} disabled={saving} icon={saving ? Loader2 : undefined}>
+            {saving ? 'Saving...' : 'Save Configuration'}
+          </Btn>
+        </div>
+      </div>
     </Panel>
   );
 }

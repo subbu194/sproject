@@ -122,7 +122,7 @@ function DesktopCarousel({ items, activeIdx, navigate, jumpTo, isDraggingRef, dr
   return (
     <div 
       className="relative w-full h-[420px] sm:h-[460px] md:h-[520px] lg:h-[580px] flex items-center justify-center overflow-visible"
-      style={{ perspective: 1200 }}
+      style={{ perspective: isMobile ? 800 : 1200 }}
     >
       {items.map((item: PressItem, idx: number) => {
         let offset = (idx - activeIdx) % count;

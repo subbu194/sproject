@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import apiClient from "../api/client";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,15 +14,7 @@ import {
 import { ChevronDown } from "lucide-react";
 
 // --- HERO VIDEO CONFIGURATION ---
-// Option 1: Local video import
-// import LOCAL_VIDEO_URL from "../assets/720p.mp4";
-
-// Option 2: Remote video link
-const REMOTE_VIDEO_URL = "https://pub-1087c4416ebe4187b644cf689b486474.r2.dev/wtbi/optimized_video/about-us/Service_Hero/2068b673-f057-45ee-850e-1f4bf963181b/720p.mp4"; // Example link
-
-// Choose which one to use by commenting/uncommenting below:
-// const HERO_VIDEO_URL = LOCAL_VIDEO_URL;
-const HERO_VIDEO_URL = REMOTE_VIDEO_URL;
+// Remote video link is now managed by Admin Dashboard via API (/api/v1/settings)
 // ------------------------------
 
 export default function HeroSection() {
@@ -29,6 +22,25 @@ export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiClient.get('/settings')
+      .then((res) => {
+        const data = res.data?.data || res.data;
+        if (data && data.heroVideoUrl) {
+          setVideoUrl(data.heroVideoUrl);
+        } else {
+          setVideoUrl('');
+          setIsVideoLoaded(true); // Nothing to load
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch settings:', err);
+        setVideoUrl('');
+        setIsVideoLoaded(true); // Bypass loader on error
+      });
+  }, []);
 
   // Ensure the branding loader shows for at least 1.5 seconds
   useEffect(() => {
@@ -80,8 +92,6 @@ export default function HeroSection() {
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let playPromise: Promise<void> | undefined;
     let isIntendedToPlay = false;
-
-    if (!videoRef.current) return;
 
     const mm = gsap.matchMedia();
 
@@ -183,22 +193,27 @@ export default function HeroSection() {
     <section
       id="hero"
       ref={container}
-      className="relative flex h-[100dvh] w-full flex-col items-center justify-center overflow-hidden bg-[var(--brown)]"
+      className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-[var(--brown)]"
     >
       {/* Background Video */}
       <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[var(--brown)]">
         <div className="hero-vid-container h-full w-full will-change-transform">
-          <video
-            ref={videoRef}
-            muted
-            loop
-            playsInline
-            onLoadedData={handleLoadedData}
-            onCanPlay={() => setIsVideoLoaded(true)}
-            className={`h-full w-full object-cover transition-opacity duration-700 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <source src={HERO_VIDEO_URL} type="video/mp4" />
-          </video>
+          {videoUrl ? (
+            <video
+              key={videoUrl}
+              ref={videoRef}
+              muted
+              loop
+              playsInline
+              onLoadedData={handleLoadedData}
+              onCanPlay={() => setIsVideoLoaded(true)}
+              className={`h-full w-full object-cover transition-opacity duration-700 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <source src={videoUrl} type="video/mp4" />
+            </video>
+          ) : (
+            <div className={`h-full w-full bg-[#3D2616] transition-opacity duration-700 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`} />
+          )}
         </div>
         {/* Dynamic Gradient Overlay */}
         <div className="hero-overlay absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70 opacity-100 will-change-opacity" />

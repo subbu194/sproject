@@ -138,10 +138,10 @@ export default function StoryPreview() {
       ) : (
         <>
           {/* RESPONSIVE PINNED COMPOSITION */}
-          <div ref={desktopContainerRef} className="flex flex-col lg:flex-row h-[100dvh] w-full overflow-hidden bg-[var(--cream)] relative pt-20 pb-4 lg:pt-0 lg:pb-0">
+          <div ref={desktopContainerRef} className="flex flex-col lg:flex-row h-screen w-full overflow-hidden bg-[var(--cream)] relative pt-24 pb-6 lg:pt-0 lg:pb-0 justify-center lg:justify-start gap-6 sm:gap-8 lg:gap-0">
 
             {/* Header Overlay */}
-            <div className="relative lg:absolute lg:top-12 lg:left-12 z-20 xl:top-16 xl:left-16 px-6 lg:px-0 mb-4 lg:mb-0">
+            <div className="relative lg:absolute lg:top-12 lg:left-12 z-20 xl:top-16 xl:left-16 px-6 lg:px-0 shrink-0">
               <div className="inline-flex items-center gap-2 text-[10px] lg:text-xs font-semibold uppercase tracking-[0.28em] text-[var(--gold)] drop-shadow-md">
                 <span className="inline-block h-px w-4 lg:w-6 bg-[var(--gold)]" />
                 My Story
@@ -152,7 +152,7 @@ export default function StoryPreview() {
             </div>
 
             {/* Left Side: Progress & Text */}
-            <div className="relative flex w-full flex-1 lg:h-full lg:w-1/2 flex-col justify-start pt-2 lg:pt-0 lg:justify-center px-6 lg:pl-12 lg:pr-16 xl:pl-16 xl:pr-24 z-10">
+            <div className="relative flex w-full shrink-0 lg:h-full lg:w-1/2 flex-col justify-start lg:justify-center px-6 lg:pl-12 lg:pr-16 xl:pl-16 xl:pr-24 z-10">
               {/* Progress Bar */}
               <div className="absolute left-6 lg:left-12 xl:left-16 top-2 lg:top-1/2 h-[160px] sm:h-[200px] lg:h-[300px] w-[2px] lg:-translate-y-1/2 bg-[var(--brown)]/10 rounded-full">
                 <div className="progress-fill w-full bg-gradient-to-b from-[var(--gold)] to-[var(--gold-light)] h-0 relative rounded-full">
@@ -179,7 +179,7 @@ export default function StoryPreview() {
             </div>
 
             {/* Right Side: Visuals */}
-            <div className="relative flex w-full h-[45%] lg:h-full lg:w-1/2 items-center justify-center px-6 pb-2 lg:p-12 xl:p-16 z-0" style={{ perspective: "1000px" }}>
+            <div className="relative flex w-full h-[35vh] sm:h-[45vh] lg:h-full lg:w-1/2 items-center justify-center px-6 lg:p-12 xl:p-16 z-0 shrink-0" style={{ perspective: "1000px" }}>
               <div className="relative h-full w-full max-h-[100%] lg:max-h-[70vh] max-w-[600px]" style={{ transformStyle: "preserve-3d" }}>
                 {items.map((entry, i) => {
                   const hasImage = entry.images && entry.images.length > 0;
@@ -203,7 +203,7 @@ export default function StoryPreview() {
               </div>
             </div>
 
-            <div className="relative lg:absolute lg:bottom-12 lg:left-12 z-20 xl:bottom-16 xl:left-16 flex justify-center lg:justify-start mt-2 lg:mt-0">
+            <div className="relative lg:absolute lg:bottom-12 lg:left-12 z-20 xl:bottom-16 xl:left-16 flex justify-center lg:justify-start shrink-0 mt-2 lg:mt-0">
               <NavLink
                 to="/page/story"
                 className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold-light)] px-6 py-3 lg:px-8 lg:py-3.5 text-xs lg:text-sm font-bold text-white shadow-lg shadow-[var(--gold)]/20 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-[var(--gold)]/30"

@@ -14,6 +14,7 @@ import achievementsRoutes from './routes/achievements.routes';
 import connectRoutes from './routes/connect.routes';
 import contactRoutes from './routes/contact.routes';
 import uploadRoutes from './routes/upload.routes';
+import settingsRoutes from './routes/settings.routes';
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/v1/achievements', achievementsRoutes);
 app.use('/api/v1/connect', connectRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 
 interface ErrorWithStatus extends Error {
   status?: number;
