@@ -7,10 +7,14 @@ import {
   BookOpen, CalendarDays, /*Lightbulb,*/ Link2, 
   MessageSquare, Newspaper, Trophy, LogOut, 
   ExternalLink, Plus, Trash2, Edit2, CheckCircle2, XCircle,
-  X, ImagePlus, Loader2, Search, Scissors, Settings
+  X, ImagePlus, Loader2, Search, Scissors, Settings,
+  ArrowLeft, ArrowRight
 } from 'lucide-react';
 import OptimizedImage from '../../components/OptimizedImage';
 import LocalImageCropModal from '../../components/crop/LocalImageCropModal';
+
+// Configuration
+export const GALLERY_MAX_IMAGES = 10;
 
 function padBlurUrls(images: string[] | undefined, blurs: string[] | undefined): string[] {
   const len = images?.length ?? 0;
@@ -123,12 +127,14 @@ function ImageUploader({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   folder: _folder,
   aspectRatio,
+  maxImages,
 }: {
   images: string[];
   imageBlurUrls?: string[];
   onChange: (imgs: string[], blurs: string[]) => void;
   folder: string;
   aspectRatio?: number;
+  maxImages?: number;
 }) {
   const [uploading, setUploading] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -146,8 +152,21 @@ function ImageUploader({
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    let files = Array.from(e.target.files || []);
     if (!files.length) return;
+    
+    if (maxImages === 1) {
+      files = [files[0]];
+    } else if (maxImages !== undefined) {
+      const remaining = maxImages - images.length;
+      files = files.slice(0, remaining);
+    }
+
+    if (!files.length) {
+      e.target.value = '';
+      return;
+    }
+
     setSelectedFiles(files);
     setCropModalOpen(true);
     e.target.value = '';
@@ -158,8 +177,8 @@ function ImageUploader({
     setSelectedFiles([]);
     setUploading(true);
     try {
-      const newImages = [...images];
-      const newBlurs = [...padBlurUrls(images, blurs)];
+      const newImages = maxImages === 1 ? [] : [...images];
+      const newBlurs = maxImages === 1 ? [] : [...padBlurUrls(images, blurs)];
       for (const item of processed) {
         const result = await uploadBlob(item.file, item.originalName);
         newImages.push(result.publicUrl);
@@ -184,6 +203,21 @@ function ImageUploader({
       images.filter((_, i) => i !== index),
       blurs.filter((_, i) => i !== index)
     );
+  };
+
+  const moveImage = (index: number, direction: 'left' | 'right') => {
+    if (direction === 'left' && index === 0) return;
+    if (direction === 'right' && index === images.length - 1) return;
+
+    const newImages = [...images];
+    const newBlurs = [...blurs];
+    const targetIndex = direction === 'left' ? index - 1 : index + 1;
+
+    // Swap
+    [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+    [newBlurs[index], newBlurs[targetIndex]] = [newBlurs[targetIndex], newBlurs[index]];
+
+    onChange(newImages, newBlurs);
   };
 
   return (
@@ -217,33 +251,61 @@ function ImageUploader({
             >
               <Trash2 className="h-4 w-4" />
             </button>
+
+            {/* Reorder Buttons */}
+            {images.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-full bg-black/60 p-1 backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100 z-10">
+                <button
+                  type="button"
+                  onClick={() => moveImage(i, 'left')}
+                  disabled={i === 0}
+                  className="rounded-full p-1.5 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  title="Move Left"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveImage(i, 'right')}
+                  disabled={i === images.length - 1}
+                  className="rounded-full p-1.5 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                  title="Move Right"
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
 
         {/* Add image button */}
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={() => fileInputRef.current?.click()}
-          className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--brown)]/20 bg-[var(--warm-white)]/50 text-[var(--brown)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/5 hover:text-[var(--gold)] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {uploading ? (
-            <Loader2 className="h-8 w-8 animate-spin" />
-          ) : (
-            <>
-              <div className="flex items-center gap-1.5 mb-1">
-                <ImagePlus className="h-7 w-7" />
-                <Scissors className="h-4 w-4 opacity-60" />
-              </div>
-              <span className="text-xs font-bold">Upload & Crop</span>
-            </>
-          )}
-        </button>
+        {(!maxImages || maxImages === 1 || images.length < maxImages) && (
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--brown)]/20 bg-[var(--warm-white)]/50 text-[var(--brown)] transition-colors hover:border-[var(--gold)] hover:bg-[var(--gold)]/5 hover:text-[var(--gold)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {uploading ? (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <ImagePlus className="h-7 w-7" />
+                  <Scissors className="h-4 w-4 opacity-60" />
+                </div>
+                <span className="text-xs font-bold">
+                  {maxImages === 1 && images.length > 0 ? "Replace Image" : "Upload & Crop"}
+                </span>
+              </>
+            )}
+          </button>
+        )}
 
         <input
           ref={fileInputRef}
           type="file"
-          multiple
+          multiple={maxImages !== 1}
           accept="image/jpeg, image/png, image/webp, image/gif"
           className="hidden"
           onChange={handleFileInputChange}
@@ -511,6 +573,7 @@ function TimelineManager({ searchQuery }: { searchQuery: string }) {
             onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
             folder="story"
             aspectRatio={1}
+            maxImages={GALLERY_MAX_IMAGES}
           />
           <div className="flex justify-end gap-3 pt-4 border-t border-[var(--brown)]/5">
             <Btn onClick={() => setModalOpen(false)} variant="ghost">Cancel Setup</Btn>
@@ -622,6 +685,7 @@ function DailyLogManager({ searchQuery }: { searchQuery: string }) {
             imageBlurUrls={form.imageBlurUrls}
             onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
             folder="logs"
+            maxImages={GALLERY_MAX_IMAGES}
           />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
@@ -827,6 +891,7 @@ function PressManager({ searchQuery }: { searchQuery: string }) {
             imageBlurUrls={form.imageBlurUrls}
             onChange={(imgs, blurs) => setForm({ ...form, images: imgs, imageBlurUrls: blurs })}
             folder="press"
+            maxImages={1}
           />
 
           <div className="flex justify-end gap-3 pt-6 border-t border-[var(--brown)]/5">
