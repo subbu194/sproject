@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import apiClient from '../api/client';
 import SectionPageShell from '../components/SectionPageShell';
 import OptimizedImage from '../components/OptimizedImage';

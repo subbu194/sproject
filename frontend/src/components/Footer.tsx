@@ -1,59 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useScroll, useMotionValueEvent } from 'framer-motion';
 import { SITE_NAME, FOOTER_TEXT } from '../constants/content';
 import { NAV_ITEMS } from '../constants/navItems';
-import apiClient from '../api/client';
-import { FaWhatsapp, FaInstagram, FaLinkedin, FaFacebook } from 'react-icons/fa';
-import { FaXTwitter } from 'react-icons/fa6';
-import { ChevronUp, Mail } from 'lucide-react';
-
-interface SocialLinks {
-  whatsapp?: string;
-  instagram?: string;
-  linkedin?: string;
-  twitter?: string;
-  facebook?: string;
-  email?: string;
-}
+import { ChevronUp } from 'lucide-react';
+import useSocialLinks from '../hooks/useSocialLinks';
 
 export default function Footer() {
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [social, setSocial] = useState<SocialLinks>({});
+  const { socialButtons } = useSocialLinks();
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
-    const shouldShow = latest > 400;
+    const previous = scrollY.getPrevious() || 0;
+    const isScrollingUp = latest < previous;
+    
+    // Only show the button if past 400px AND the user is scrolling up
+    const shouldShow = latest > 400 && isScrollingUp;
+    
     if (showBackToTop !== shouldShow) {
       setShowBackToTop(shouldShow);
     }
   });
 
-  useEffect(() => {
-    apiClient
-      .get('/connect')
-      .then((res) => setSocial(res.data?.data || res.data || {}))
-      .catch(() => setSocial({}));
-  }, []);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const formatUrl = (url?: string) => {
-    if (!url) return undefined;
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) return url;
-    return `https://${url}`;
-  };
-
-  const socialIcons = [
-    { key: 'whatsapp', icon: <FaWhatsapp className="h-5 w-5" />, url: formatUrl(social.whatsapp), label: 'WhatsApp' },
-    { key: 'twitter', icon: <FaXTwitter className="h-5 w-5" />, url: formatUrl(social.twitter), label: 'Twitter' },
-    { key: 'facebook', icon: <FaFacebook className="h-5 w-5" />, url: formatUrl(social.facebook), label: 'Facebook' },
-    { key: 'instagram', icon: <FaInstagram className="h-5 w-5" />, url: formatUrl(social.instagram), label: 'Instagram' },
-    { key: 'linkedin', icon: <FaLinkedin className="h-5 w-5" />, url: formatUrl(social.linkedin), label: 'LinkedIn' },
-    { key: 'email', icon: <Mail className="h-5 w-5" />, url: social.email ? `mailto:${social.email}` : undefined, label: 'Email' },
-  ].filter((s) => s.url);
 
   return (
     <>
@@ -69,7 +41,7 @@ export default function Footer() {
                     <img
                       src="/sprojectlogo.png"
                       alt="S Project Logo"
-                      className="h-6 w-6 object-contain filter drop-shadow-sm"
+                      className="h-12 w-12 object-contain filter drop-shadow-sm"
                     />
                   </div>
                 </div>
@@ -110,7 +82,7 @@ export default function Footer() {
                 Interested in collaborating or just want to say hello?
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                {socialIcons.map((s) => (
+                {socialButtons.map((s) => (
                   <a
                     key={s.key}
                     href={s.url}

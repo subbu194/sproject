@@ -50,8 +50,10 @@ export default function Navbar() {
       : 'rounded-full bg-[var(--cream)]/80 border-[var(--brown)]/12 shadow-[var(--brown)]/8';
   } else if (isConnect) {
     navBg = mobileOpen
-      ? 'rounded-2xl bg-[var(--brown)]/95 border-[var(--cream)]/10 shadow-black/20'
-      : (scrolled ? 'rounded-full bg-[var(--brown)]/90 border-[var(--cream)]/10 shadow-black/20' : 'rounded-full bg-transparent border-transparent shadow-none');
+      ? 'rounded-2xl bg-[#3D2616]/95 border-[var(--gold)]/20 shadow-2xl shadow-black/40'
+      : (scrolled 
+          ? 'rounded-full bg-[#3D2616]/80 border-[var(--gold)]/20 shadow-lg shadow-black/30' 
+          : 'rounded-full bg-transparent border-transparent shadow-none');
   } else {
     // Home Top
     navBg = mobileOpen
@@ -67,21 +69,21 @@ export default function Navbar() {
   const logoTextClass = isLight ? 'text-[var(--brown)]' : 'text-[var(--cream)]';
   const mutedTextClasses = isLight
     ? 'text-[var(--brown)]/80 font-medium hover:text-[var(--gold)] hover:bg-[var(--brown)]/5'
-    : 'text-[var(--cream)]/90 font-medium hover:text-[var(--gold)] hover:bg-[var(--cream)]/10';
+    : 'text-[var(--cream)]/90 font-medium hover:text-[var(--gold)] hover:bg-[var(--gold)]/10';
   const activeTextClasses = isLight
     ? 'text-[var(--gold)] font-bold bg-[var(--gold)]/8'
-    : 'text-[var(--gold)] font-bold bg-[var(--cream)]/10';
+    : 'text-[var(--gold)] font-bold bg-[var(--gold)]/15 ring-1 ring-[var(--gold)]/30';
   const hamburgerClass = isLight
     ? 'text-[var(--brown)] hover:bg-[var(--brown)]/8'
-    : 'text-[var(--cream)] hover:bg-[var(--cream)]/10';
+    : 'text-[var(--cream)] hover:bg-[var(--gold)]/20';
   const dropdownItemBase = isLight
     ? 'hover:bg-[var(--brown)]/6 hover:text-[var(--gold)]'
-    : 'hover:bg-[var(--cream)]/10 hover:text-[var(--gold)]';
+    : 'hover:bg-[var(--gold)]/10 hover:text-[var(--gold)]';
   const dropdownItemActive = isLight
     ? 'bg-[var(--gold)]/8 text-[var(--gold)]'
-    : 'bg-[var(--cream)]/10 text-[var(--gold)]';
+    : 'bg-[var(--gold)]/15 text-[var(--gold)] ring-1 ring-[var(--gold)]/30';
   const dropdownItemInactive = isLight ? 'text-[var(--brown)]/80' : 'text-[var(--cream)]/90';
-  const dropdownBorder = isLight ? 'border-[var(--brown)]/10' : 'border-[var(--cream)]/10';
+  const dropdownBorder = isLight ? 'border-[var(--brown)]/10' : 'border-[var(--gold)]/20';
 
   return (
     <>

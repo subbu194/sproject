@@ -1,71 +1,8 @@
-import { useEffect, useState } from 'react';
-import apiClient from '../../api/client';
+import useSocialLinks from '../../hooks/useSocialLinks';
 import ContactForm from '../../components/ContactForm';
-import { FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
-import { FaXTwitter } from 'react-icons/fa6';
-import { Mail } from 'lucide-react';
-
-interface SocialLinks {
-  whatsapp?: string;
-  instagram?: string;
-  linkedin?: string;
-  twitter?: string;
-  email?: string;
-}
 
 export default function ConnectPreview() {
-  const [social, setSocial] = useState<SocialLinks>({});
-
-  useEffect(() => {
-    apiClient
-      .get('/connect')
-      .then((res) => setSocial(res.data?.data || res.data || {}))
-      .catch(() => setSocial({}));
-  }, []);
-
-  const formatUrl = (url?: string) => {
-    if (!url) return undefined;
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) return url;
-    return `https://${url}`;
-  };
-
-  const socialButtons = [
-    {
-      key: 'whatsapp',
-      label: 'WhatsApp',
-      icon: <FaWhatsapp className="h-5 w-5" />,
-      url: formatUrl(social.whatsapp),
-      hoverClass: 'hover:border-green-400 hover:bg-green-500 hover:text-white',
-    },
-    {
-      key: 'instagram',
-      label: 'Instagram',
-      icon: <FaInstagram className="h-5 w-5" />,
-      url: formatUrl(social.instagram),
-      hoverClass: 'hover:border-pink-400 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white',
-    },
-    {
-      key: 'linkedin',
-      label: 'LinkedIn',
-      icon: <FaLinkedin className="h-5 w-5" />,
-      url: formatUrl(social.linkedin),
-      hoverClass: 'hover:border-blue-400 hover:bg-blue-600 hover:text-white',
-    },
-    {
-      key: 'twitter',
-      label: 'X (Twitter)',
-      icon: <FaXTwitter className="h-5 w-5" />,
-      url: formatUrl(social.twitter),
-      hoverClass: 'hover:border-neutral-400 hover:bg-neutral-900 hover:text-white',
-    },
-    {
-      key: 'email',
-      label: 'Email',
-      icon: <Mail className="h-5 w-5" />,
-      url: social.email ? `mailto:${social.email}` : undefined,
-      hoverClass: 'hover:border-[var(--gold)] hover:bg-[var(--gold)] hover:text-white',
-    },
-  ].filter((s) => s.url);
+  const { socialButtons, loading } = useSocialLinks();
 
   return (
     <section id="connect" className="scroll-mt-24 bg-[var(--brown)] py-20 lg:py-28 relative overflow-hidden">
@@ -95,24 +32,32 @@ export default function ConnectPreview() {
           {/* Social Links */}
           <div>
             <h3 className="text-sm font-semibold text-[var(--cream)]">Find me on</h3>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {socialButtons.length > 0 ? (
-                socialButtons.map((s) => (
-                  <a
-                    key={s.key}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2.5 rounded-xl border border-[var(--cream)]/15 px-5 py-3 text-sm font-medium text-[var(--cream)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${s.hoverClass}`}
-                  >
-                    {s.icon}
-                    {s.label}
-                  </a>
-                ))
-              ) : (
-                <p className="text-sm text-[var(--cream)]/50">Social links coming soon.</p>
-              )}
-            </div>
+            {loading ? (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="skeleton h-11 w-32 !bg-white/5 rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {socialButtons.length > 0 ? (
+                  socialButtons.map((s) => (
+                    <a
+                      key={s.key}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-2.5 rounded-xl border border-[var(--cream)]/15 px-5 py-3 text-sm font-medium text-[var(--cream)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${s.hoverClass}`}
+                    >
+                      {s.icon}
+                      {s.label}
+                    </a>
+                  ))
+                ) : (
+                  <p className="text-sm text-[var(--cream)]/50">Social links coming soon.</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Contact Form */}
